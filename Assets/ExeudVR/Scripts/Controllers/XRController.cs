@@ -33,7 +33,9 @@ namespace ExeudVR
         [SerializeField] private float MaxInteractionDistance = 15.0f;
         [SerializeField] private Renderer[] HandRenderers;
 
+        [SerializeField] private XRPointer xrPointer; 
         [SerializeField] private LayerMask PointerLayerMask;
+
 
         #region >   Public Variables, Functions and Attributes
 
@@ -129,7 +131,6 @@ namespace ExeudVR
         private Rigidbody currentFarRigidBody = null;
         private ObjectInterface currentInterface;
 
-        private List<ObjectInterface> nearInterfaces = new List<ObjectInterface>();
         private List<RigidDynamics> nearcontactRigidBodies = new List<RigidDynamics>();
         private List<RigidDynamics> farcontactRigidBodies = new List<RigidDynamics>();
 
@@ -138,9 +139,6 @@ namespace ExeudVR
 
         private SharedAsset currentNearSharedAsset;
         private SharedAsset currentFarSharedAsset;
-
-        private GameObject currentObject;
-        private GameObject myPointer;
 
         private string prevMeshName = "";
 
@@ -231,16 +229,12 @@ namespace ExeudVR
         void Start()
         {
             attachJoint = new FixedJoint[] { GetComponents<FixedJoint>()[0], GetComponents<FixedJoint>()[1] };
-
-            myPointer = transform.Find("pointer").gameObject;
-
             vrGuideCam = CharacterRoot.GetComponentInChildren<Camera>();
 
             if (!debugHand)
             {
                 ToggleRenderers(xrState == WebXRState.VR);
             }
-
             jumpTick = Time.time;
         }
 
@@ -336,8 +330,7 @@ namespace ExeudVR
             prevTrig = trigVal;
             prevGrip = gripVal;
 
-            // set pointers
-            PlacePointer();
+            // handle far interaction
             SetActiveFarMesh();
         }
 
@@ -901,11 +894,6 @@ namespace ExeudVR
             if (currentInterface != null)
             {
                 OnObjectGrip?.Invoke(hand, currentInterface.gameObject, false);
-                if (!nearInterfaces.Contains(currentInterface))
-                {
-                    //OnHandFocus(currentInterface.gameObject, false);
-                }
-
                 currentInterface = null;
             }
 
@@ -995,6 +983,8 @@ namespace ExeudVR
 
         private void SetActiveFarMesh()
         {
+            GameObject currentObject = xrPointer.PlacePointer();
+
             // only active when there is a focused object
             if (currentObject != null)
             {
@@ -1077,15 +1067,6 @@ namespace ExeudVR
                 case 14:    // wearables
                 case 15:    // tools
                     {
-                        if (other.gameObject.TryGetComponent(out ObjectInterface oi))
-                        {
-                            if (!nearInterfaces.Contains(oi))
-                            {
-                                nearInterfaces.Add(oi);
-                                //OnHandFocus?.Invoke(gameObject, true);
-                            }
-                        }
-
                         if (other.gameObject.TryGetComponent(out RigidDynamics rd))
                         {
                             if (!nearcontactRigidBodies.Contains(rd))
@@ -1125,15 +1106,6 @@ namespace ExeudVR
                 case 14:    // wearables
                 case 15:    // tools
                     {
-                        if (other.gameObject.TryGetComponent(out ObjectInterface oi))
-                        {
-                            if (nearInterfaces.Contains(oi))
-                            {
-                                nearInterfaces.Remove(oi);
-                                //OnHandFocus?.Invoke(other.gameObject, false);
-                            }
-                        }
-
                         if (other.gameObject.TryGetComponent(out RigidDynamics rd))
                         {
                             if (nearcontactRigidBodies.Contains(rd))
@@ -1182,37 +1154,7 @@ namespace ExeudVR
             return nearestRigidBody;
         }
 
-        private void PlacePointer()
-        {
-            Vector3 pointerPos = CastControllerRay();
-            myPointer.transform.position = pointerPos;
-            myPointer.transform.rotation = transform.rotation;
-            myPointer.transform.GetChild(0).transform.rotation = transform.rotation;
-        }
-
-        private Vector3 CastControllerRay()
-        {
-            Vector3 rayStart = gameObject.transform.position + (gameObject.transform.forward * 0.3f);
-            Ray handRay = new Ray(rayStart, gameObject.transform.forward);
-            RaycastHit newHit = new RaycastHit();
-
-            Vector3 currentHitPoint = gameObject.transform.position + (gameObject.transform.forward * -0.125f);
-
-            if (Physics.Raycast(handRay, out newHit, MaxInteractionDistance, PointerLayerMask))
-            {
-                currentObject = newHit.collider.gameObject;
-                currentHitPoint = newHit.point + (handRay.direction.normalized * -0.02f);
-            }
-            else
-            {
-                currentObject = null;
-            }
-            return currentHitPoint;
-        }
-
         #endregion Low-Level Interaction Methods
 
-
     }
-
 }

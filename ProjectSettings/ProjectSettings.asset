@@ -340,7 +340,7 @@ PlayerSettings:
   openGLRequireES31AEP: 0
   openGLRequireES32: 0
   m_TemplateCustomTags:
-    DESCRIPTION: Made with Exeud VR
+    DESCRIPTION: Made with ExeudVR
     WEBXR_POLYFILL_CONFIG: 
   mobileMTRendering:
     Android: 1
