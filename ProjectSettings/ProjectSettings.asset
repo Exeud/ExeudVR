@@ -340,7 +340,7 @@ PlayerSettings:
   openGLRequireES31AEP: 0
   openGLRequireES32: 0
   m_TemplateCustomTags:
-    DESCRIPTION: Made with ExeudVR
+    DESCRIPTION: Internet Computer Virtual Reality
     WEBXR_POLYFILL_CONFIG: 
   mobileMTRendering:
     Android: 1
@@ -588,9 +588,9 @@ PlayerSettings:
   webGLNameFilesAsHashes: 0
   webGLDataCaching: 1
   webGLDebugSymbols: 0
-  webGLEmscriptenArgs: ' -std=c++11'
+  webGLEmscriptenArgs: 
   webGLModulesDirectory: 
-  webGLTemplate: PROJECT:ExeudVR
+  webGLTemplate: PROJECT:ICVR
   webGLAnalyzeBuildSize: 0
   webGLUseEmbeddedResources: 0
   webGLCompressionFormat: 2

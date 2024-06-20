@@ -81,6 +81,7 @@ namespace ExeudVR.Settings
 
                 if (assetId.Contains("newtonsoft-json"))
                 {
+                    Debug.Log("Adding early json 1");
                     SDSUtility.AddSymbol(BuildTargetGroup.WebGL, "EARLY_JSON");
                 }
             }
@@ -149,6 +150,7 @@ namespace ExeudVR.Settings
                     // a hack to allow newtonsoft json to be used after load, but only once
                     if (Request.Result.packageId.Contains("newtonsoft-json"))
                     {
+                        Debug.Log("Adding early json 2");
                         SDSUtility.AddSymbol(BuildTargetGroup.WebGL, "EARLY_JSON");
                     }
                     else if (Request.Result.packageId.Contains("com.de-panther"))

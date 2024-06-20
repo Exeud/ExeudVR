@@ -462,7 +462,7 @@ MonoBehaviour:
   cursorForObjects: {fileID: 2800000, guid: fcd990195bbd10c44bb92a1f6c5737ac, type: 3}
   cursorForControls: {fileID: 2800000, guid: be50afd8a5bb98b44875ddfce132c2e8, type: 3}
   crosshair: {fileID: 2297975179182502791}
-  DebugMouseInteraction: 1
+  DebugMouseInteraction: 0
 --- !u!1 &698816166246878132
 GameObject:
   m_ObjectHideFlags: 0
@@ -1841,6 +1841,7 @@ MonoBehaviour:
   - {fileID: 4209970535097657774}
   - {fileID: 5665028032475406464}
   - {fileID: 5532301133875990200}
+  xrPointer: {fileID: 0}
   PointerLayerMask:
     serializedVersion: 2
     m_Bits: 48673
@@ -4467,6 +4468,7 @@ MonoBehaviour:
   - {fileID: 565868905459478634}
   - {fileID: 8300150098786915919}
   - {fileID: 7517697457642343491}
+  xrPointer: {fileID: 0}
   PointerLayerMask:
     serializedVersion: 2
     m_Bits: 48673

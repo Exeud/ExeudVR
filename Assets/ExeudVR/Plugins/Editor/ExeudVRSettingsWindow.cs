@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Security.Cryptography.X509Certificates;
 using UnityEditor;
 using UnityEditor.Presets;
 using UnityEngine;
@@ -14,7 +15,7 @@ namespace ExeudVR.Settings
     /// </summary>
     public class ExeudVRSettingsWindow : EditorWindow
     {
-        private ExeudVRSettingsData settingsData;
+        private static ExeudVRSettingsData settingsData;
         private ExeudVRProjectSettings projectSettings;
 
         private static string PRESET_PATH = "Assets/ExeudVR/Settings/Presets";
@@ -28,7 +29,6 @@ namespace ExeudVR.Settings
         private static string QUAL_MNGR_ASSET = "ProjectSettings/QualitySettings.asset";
         private static string PLAY_MNGR_ASSET = "ProjectSettings/ProjectSettings.asset";
         private static string EDTR_MNGR_ASSET = "ProjectSettings/EditorSettings.asset";
-
 
         [MenuItem("Window/WebXR/ExeudVR Setup")]
         public static void ShowWindow()
@@ -158,42 +158,9 @@ namespace ExeudVR.Settings
             for (int i = 0; i < presets.Length; i++)
             {
                 string filename = Path.GetFileNameWithoutExtension(presetFiles[i]);
-                string shortName = filename.Substring(5, filename.Length - 5);
+                string filepath = presetFiles[i];
                 presetStates[i] = presets[i].Value;
-
-                GUILayout.BeginHorizontal();
-
-                GUILayout.Label(shortName);
-                GUILayout.FlexibleSpace();
-
-                if (!presets[i].Value)
-                {
-                    if (GUILayout.Button("Apply", GUILayout.Width(50)))
-                    {
-                        presets.SetValue(new KeyValuePair<string, bool>(filename, true), i);
-
-                        // Update settings
-                        string filepath = presetFiles[i];
-                        string manager = IdentifyManager(filename);
-                        if (!string.IsNullOrEmpty(manager))
-                        {
-                            UpdateSettings(filepath, manager);
-                        }
-                    }
-                }
-                else
-                {
-                    var greenStyle = new GUIStyle(GUI.skin.label);
-                    greenStyle.normal.textColor = Color.green;
-                    EditorGUILayout.LabelField("✔", greenStyle, GUILayout.MaxWidth(20));
-
-                    if (GUILayout.Button("Cancel", GUILayout.Width(60)))
-                    {
-                        presets.SetValue(new KeyValuePair<string, bool>(filename, false), i);
-                    }
-                }
-
-                GUILayout.EndHorizontal();
+                DisplayPreset(i, filename, filepath);
             }
 
             if (GUILayout.Button("Apply All"))
@@ -227,6 +194,16 @@ namespace ExeudVR.Settings
 
             EditorGUI.EndDisabledGroup();
         }
+
+
+        public static void EnsureWebGLBuildTarget()
+        {
+            if (EditorUserBuildSettings.activeBuildTarget != BuildTarget.WebGL)
+            {
+                EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTargetGroup.WebGL, BuildTarget.WebGL);
+            }
+        }
+
 
         void DisplayPackage(string label, string packageName)
         {
@@ -277,14 +254,45 @@ namespace ExeudVR.Settings
             return isPresent;
         }
 
-        public static void EnsureWebGLBuildTarget()
+        private void DisplayPreset(int i, string filename, string filepath)
         {
-            if (EditorUserBuildSettings.activeBuildTarget != BuildTarget.WebGL)
-            {
-                EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTargetGroup.WebGL, BuildTarget.WebGL);
-            }
-        }
+            GUILayout.BeginHorizontal();
 
+            string shortName = filename.Substring(5, filename.Length - 5);
+            presetStates[i] = presets[i].Value;
+
+            GUILayout.Label(shortName);
+            GUILayout.FlexibleSpace();
+
+            if (!presets[i].Value)
+            {
+                if (GUILayout.Button("Apply", GUILayout.Width(50)))
+                {
+                    presets.SetValue(new KeyValuePair<string, bool>(filename, true), i);
+
+                    // Update settings
+                    string manager = IdentifyManager(filename);
+                    if (!string.IsNullOrEmpty(manager))
+                    {
+                        UpdateSettings(filepath, manager);
+                    }
+                }
+            }
+            else
+            {
+                var greenStyle = new GUIStyle(GUI.skin.label);
+                greenStyle.normal.textColor = Color.green;
+                EditorGUILayout.LabelField("✔", greenStyle, GUILayout.MaxWidth(20));
+
+                if (GUILayout.Button("Cancel", GUILayout.Width(60)))
+                {
+                    presets.SetValue(new KeyValuePair<string, bool>(filename, false), i);
+                }
+            }
+
+            GUILayout.EndHorizontal();
+        }
+        
         private string IdentifyManager(string presetName)
         {
             switch (presetName)
@@ -338,11 +346,6 @@ namespace ExeudVR.Settings
             settingsPreset.ApplyTo(settingsManager.targetObject);
             settingsManager.ApplyModifiedProperties();
             settingsManager.Update();
-        }
-
-        private void UpdateWebXRSettings(string preset, string manager)
-        {
-            
         }
 
     }
