@@ -1,37 +1,35 @@
-# Exeud Virtual Reality 
+# Ex*euδ* VR Unity Toolkit 
 
-Welcome to the ExeudVR, a Unity-based toolkit for designing cutting-edge immersive experiences on the Internet Computer.
+Welcome to ExeudVR, helping you to build, host and share immersive experiences on the Internet Computer. This repository - a Unity toolkit - features modules that add dynamic physics, interaction, a rigged body and p2p multiplayer functionality to your Unity scene. Once built, it can be used with the [exeudvr-canister](https://github.com/willguest/exeudvr-canister) repository, to self-host these interactive experience on the bloackchain.
 
-
-## 📦 Steps to Create an ExeudVR Experience
+## 📦 Steps to create a new immersive experience
 
 Make sure that [Unity 2020 LTS](https://unity.com/releases/editor/archive#download-archive-2020) is installed on your system.
 
 1) Start a new URP project using [Unity Hub](https://unity.com/download).
 
-2) Import the ExeudVR package. \
+2) Import the ExeudVR package, which can be downloaded from the [releases page](https://github.com/willguest/ExeudVR/releases). \
 *Assets → Import Package → Custom Package*
 
-3) Open the ICVR Setup window. \
+3) Open the ExeudVR Setup window. \
 *Window → WebXR → ExeudVR Setup*
 
 4) Use the interface to complete the ExeudVR setup:
 
    - Switch build target to WebGL.
    - Add dependencies, using the relevant buttons.
-   - Click on *Enable ExeudVR* to add the `ExeudVR` Scripting Define Symbol.
+   - Click on *Enable ExeudVR* to add enable the toolkit.
    - Apply relevant settings. Note that **this will override your current settings**.
 
 5) Check that WebXR Export is enabled for the WebGL target. \
 *Project Settings → XR Plug-in Management*
 
-6) Open one of the test scenes \
-Bare bones: *Assets/ExeudVR/Scenes* \
-(https://github.com/willguest/ExeudVR/releases)
+6) Open one of the starter scenes \
+*Assets/ExeudVR/Scenes*
 
-7) Open the *Build Settings* window, add the current scene and click *Build*
+7) In the *Build Settings* window, add the current scene, then click *Build*
 
-8) For compatibility with the [exeud-canister](https://github.com/willguest/exeud-canister) template, place the build in a folder called `unity_build`.
+8) For compatibility with the [canister template](https://github.com/willguest/exeudvr-canister), put the build in a folder called `unity_build`.
 
 
 ## 🛠️ Technology Stack
@@ -45,14 +43,15 @@ Bare bones: *Assets/ExeudVR/Scenes* \
 
 Each class is documented in a corresponding markdown file, and linked in the class definition summary. The [top level](https://github.com/willguest/ExeudVR/tree/develop/Documentation) contains instructions on how to add documentation to any contributions.
 
+
 ## 🌐 Self-Hosting
 
-This repository is intended to be used with [exeud-canister](https://github.com/willguest/exeud-canister), which allows the Unity WebGL builds to be self-hosted on the Internet Computer blockchain. See that repository's README for more information.
+This repository is intended to be used with [exeudvr-canister](https://github.com/willguest/exeudvr-canister), which allows the Unity WebGL builds to be self-hosted on the Internet Computer blockchain. See that repository's README for more information.
 
 
 ## 💛 Sponsorship
 
-The framework is open-source and was initially funded by non-dilutive grants from the Internet Computer. I welcome sponsorship in all forms and look forward to scaling this project as more resources become available. Please visit my [sponsorship page](https://github.com/sponsors/willguest) for more information.
+The framework is open-source and largely funded by grants from the Internet Computer. I welcome sponsorship in all its forms and look forward to scaling this project as more resources become available. Please visit my [sponsorship page](https://github.com/sponsors/willguest) for more information.
 
 
 ## ⚖️ License
