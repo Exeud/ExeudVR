@@ -29,6 +29,11 @@ namespace ExeudVR
 
         public ExeudVRAvatarController avatar { get; set; }
 
+        public float CharacterHeight { 
+            get { return transform.localPosition.y; }
+            private set { _ = transform.localPosition.y; } 
+        }
+
         // Network hook
         [DllImport("__Internal")]
         private static extern void SendData(string msg);

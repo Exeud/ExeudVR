@@ -1424,17 +1424,15 @@ MonoBehaviour:
         transform: {fileID: 0}
         weight: 0
     m_ConstrainedPositionAxes:
-      x: 1
-      y: 1
-      z: 1
+      x: 0
+      y: 0
+      z: 0
     m_ConstrainedRotationAxes:
       x: 1
       y: 1
       z: 1
     m_MaintainPositionOffset: 1
     m_MaintainRotationOffset: 1
-  m_SourceObjectsGUIToggle: 1
-  m_SettingsGUIToggle: 0
 --- !u!1 &5392661465505666435
 GameObject:
   m_ObjectHideFlags: 0
@@ -1568,8 +1566,6 @@ MonoBehaviour:
     m_HintWeight: 1
     m_MaintainTargetPositionOffset: 0
     m_MaintainTargetRotationOffset: 0
-  m_SourceObjectsGUIToggle: 0
-  m_SettingsGUIToggle: 0
 --- !u!1 &5392661466763763605
 GameObject:
   m_ObjectHideFlags: 0
@@ -1674,8 +1670,6 @@ MonoBehaviour:
     m_HintWeight: 1
     m_MaintainTargetPositionOffset: 0
     m_MaintainTargetRotationOffset: 0
-  m_SourceObjectsGUIToggle: 1
-  m_SettingsGUIToggle: 1
 --- !u!1 &5392661466833950810
 GameObject:
   m_ObjectHideFlags: 0
@@ -2754,8 +2748,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 9069894690256810965}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: -1.85, z: 0}
-  m_LocalScale: {x: 1.1, y: 1.1, z: 1.1}
+  m_LocalPosition: {x: 0, y: -1.7, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 4750033637056556161}
   - {fileID: 4234860614818417147}
@@ -2818,7 +2812,7 @@ MonoBehaviour:
   bodyController: {fileID: 0}
   Body:
     rigTarget: {fileID: 8544856290302962031}
-    trackingPositionOffset: {x: 0, y: -1.25, z: -0.2}
+    trackingPositionOffset: {x: 0, y: 0.1, z: -0.2}
     trackingRotationOffset: {x: 0, y: 0, z: 0}
   Head:
     rigTarget: {fileID: 5392661465499036261}

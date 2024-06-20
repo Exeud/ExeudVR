@@ -11,11 +11,11 @@ namespace ExeudVR
     {
         [SerializeField] private Transform cameraReference;
         [SerializeField] private GameObject HUDObjectRoot;
-
         [Range(1f, 10f)]
         [SerializeField] private float HUDSnappiness = 3;
+        [SerializeField] private GameObject footPlate;
 
-        private Vector3 BodyOffset;
+        //private Vector3 BodyOffset;
         private Vector3 UiOffset;
         private Quaternion UiStartRot;
         private WebXRState xrState = WebXRState.NORMAL;
@@ -34,14 +34,14 @@ namespace ExeudVR
         {
             UiStartRot = HUDObjectRoot.transform.localRotation;
             UiOffset = HUDObjectRoot.transform.position - transform.position;
-            BodyOffset = cameraReference.position - transform.position;
+            //BodyOffset = cameraReference.position - transform.position;
         }
 
         private void FixedUpdate()
         {
-            transform.localPosition = cameraReference.localPosition - BodyOffset;
-
+            //transform.localPosition = cameraReference.localPosition - BodyOffset;
             transform.localRotation = Quaternion.Euler(0f, cameraReference.localRotation.eulerAngles.y, 0f);
+            footPlate.transform.localRotation = Quaternion.Euler(0f, cameraReference.localRotation.eulerAngles.y, 0f);
 
             if (xrState == WebXRState.NORMAL)
             {

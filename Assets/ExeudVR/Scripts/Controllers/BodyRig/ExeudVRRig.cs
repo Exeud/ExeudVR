@@ -20,6 +20,8 @@ public class ExeudVRRig : MonoBehaviour
     [Tooltip("Connection to ICVR \nHint: ICVRCameraSet ➥ CharacterRoot ➥ Body")]
     [SerializeField] private BodyController bodyController;
 
+    [SerializeField] private float yFac;
+
     public VRMap Body;
     public VRMap Head;
     public VRMap LeftHand;
@@ -44,6 +46,12 @@ public class ExeudVRRig : MonoBehaviour
     {
         Head.Map(headRef);
         Body.Map(bodyRef);
+
+        // adjustment to prevent seeing the inside of your face
+        //yFac = (0.1f * Mathf.Sin(headRef.localRotation.eulerAngles.x * Mathf.Deg2Rad)) + 0.1f;
+        //transform.position = bodyRef.TransformPoint(new Vector3(0f, yFac, -0.2f));
+        //transform.rotation = bodyRef.rotation;
+
         RightHand.Map(rightHandRef);
         LeftHand.Map(leftHandRef);
 

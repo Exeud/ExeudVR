@@ -6,7 +6,7 @@ namespace ExeudVR
     {
         [SerializeField] private float MaxInteractionDistance = 15.0f;
         [SerializeField] private LayerMask PointerLayerMask;
-        [SerializeField] private GameObject PointerRing;
+        //[SerializeField] private GameObject PointerRing;
         [SerializeField] private Transform PointerLine;
 
         private GameObject currentObject;
@@ -15,12 +15,12 @@ namespace ExeudVR
 
         private void OnEnable()
         {
-            PointerRing.GetComponent<RingLock>().locked += ToggleRingLock;
+            //PointerRing.GetComponent<RingLock>().locked += ToggleRingLock;
         }
 
         private void OnDisable()
         {
-            PointerRing.GetComponent<RingLock>().locked -= ToggleRingLock;
+            //PointerRing.GetComponent<RingLock>().locked -= ToggleRingLock;
         }
 
         private void Start()
@@ -51,7 +51,7 @@ namespace ExeudVR
             if (Physics.Raycast(handRay, out RaycastHit newHit, MaxInteractionDistance, PointerLayerMask))
             {
                 currentObject = newHit.collider.gameObject;
-                PointerRing.transform.localScale = new Vector3(newHit.distance, newHit.distance, 1.0f);
+                //PointerRing.transform.localScale = new Vector3(newHit.distance, newHit.distance, 1.0f);
                 currentHitPoint = newHit.point + (handRay.direction.normalized * -0.02f);
             }
             else if (HasRingLock)
