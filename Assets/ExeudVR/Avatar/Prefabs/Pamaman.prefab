@@ -2810,6 +2810,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   bodyController: {fileID: 0}
+  yFac: 0
   Body:
     rigTarget: {fileID: 8544856290302962031}
     trackingPositionOffset: {x: 0, y: 0.1, z: -0.2}

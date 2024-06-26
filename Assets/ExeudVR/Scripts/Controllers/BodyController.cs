@@ -10,6 +10,7 @@ using Newtonsoft.Json;
 using ExeudVR.SharedAssets;
 using UnityEngine;
 using WebXR;
+using System.Collections.Generic;
 
 namespace ExeudVR
 {
@@ -54,11 +55,11 @@ namespace ExeudVR
         [SerializeField] private Transform rightPointer;
 
         private bool IsConnectionReady = false;
-        private bool hasInteractionEvent = false;
 
-        private AvatarEventType currentEventType = AvatarEventType.None;
-        private string currentEventData = "";
-        private static float startTime = 0.0f;
+        private Queue<string> nQ = new Queue<string>();
+        private int nQc = 0;
+        private float lastTick;
+        private float frameTick;
 
         private bool notifyingNetwork = false;
 
@@ -75,9 +76,6 @@ namespace ExeudVR
 
         private void OnXRChange(WebXRState state, int viewsCount, Rect leftRect, Rect rightRect)
         {
-            //headObject.transform.localRotation = Quaternion.identity;
-
-            // link controller events in VR
             MapControllerEvents(state == WebXRState.VR);
 
             // toggle hand IK
@@ -117,9 +115,6 @@ namespace ExeudVR
         {
             if (isOn)
             {
-                //rightController.OnHandFocus += HandleObjectFocus;
-                //leftController.OnHandFocus += HandleObjectFocus;
-
                 rightController.OnObjectGrip += HandleObjectGrip;
                 leftController.OnObjectGrip += HandleObjectGrip;
 
@@ -131,9 +126,6 @@ namespace ExeudVR
             }
             else
             {
-                //rightController.OnHandFocus -= HandleObjectFocus;
-                //leftController.OnHandFocus -= HandleObjectFocus;
-
                 rightController.OnObjectGrip -= HandleObjectGrip;
                 leftController.OnObjectGrip -= HandleObjectGrip;
 
@@ -192,35 +184,28 @@ namespace ExeudVR
         void Start()
         {
             MapEvents(true);
+            nQ.Clear();
 
 #if UNITY_EDITOR
-            // debugging option
+            // for debugging
             MapControllerEvents(true);
 #endif
 
             CurrentUserId = "Me";
             CurrentNoPeers = 0;
+
+            StartCoroutine(SendPackets());
         }
 
         void Update()
         {
-            if (!IsConnectionReady) return;
-
-            float frameTick = Time.time;
-            if (hasInteractionEvent)
+            if (IsConnectionReady && CurrentNoPeers > 0)
             {
-                startTime = frameTick + 0.25f;
-                SendData(JsonConvert.SerializeObject(BuildDataFrame()));
-
-                hasInteractionEvent = false;
-                currentEventData = "";
-            }
-            else if ((frameTick - startTime) > 0.25f)
-            {
-                startTime = frameTick;
-                if (CurrentNoPeers > 0)
+                frameTick = Time.time;
+                if ((frameTick - lastTick) > 0.25f)
                 {
-                    SendData(JsonConvert.SerializeObject(BuildDataFrame()));
+                    lastTick = frameTick;
+                    SendDataFrame();
                 }
             }
         }
@@ -276,35 +261,34 @@ namespace ExeudVR
         {
             CurrentNoPeers = numberofplayers;
 
-            // send a packet to start communication
+            // send a packet to kick off comms
             if (CurrentNoPeers > 0)
             {
-                hasInteractionEvent = true;
+                SendDataFrame();
             }
         }
 
         private void SetConnectionReady(bool newState)
         {
             CurrentUserId = NetworkIO.Instance.CurrentUserId;
-
-            // force send message on next frame
             IsConnectionReady = newState;
-            hasInteractionEvent = newState;
         }
 
         private void PackageEventData(AvatarHandlingData ahdFrame)
         {
-            if (CurrentNoPeers < 1)
-            {
-                return;
-            }
-
-            currentEventType = AvatarEventType.Interaction;
-            currentEventData = JsonConvert.SerializeObject(ahdFrame);
-            hasInteractionEvent = true;
+            SendDataFrame(AvatarEventType.Interaction, JsonConvert.SerializeObject(ahdFrame));
         }
 
-        private NodeDataFrame BuildDataFrame()
+        public void EnqueuePacket(string message)
+        {
+            if (IsConnectionReady && CurrentNoPeers > 0)
+            {
+                nQ.Enqueue(message);
+                nQc++;
+            }
+        }
+
+        private void SendDataFrame(AvatarEventType eventType = AvatarEventType.None, string dataFrame = "")
         {
             if (Application.platform == RuntimePlatform.WebGLPlayer)
             {
@@ -321,15 +305,26 @@ namespace ExeudVR
                     LeftHandPointer = leftPointer.position,
                     RightHandPointer = rightPointer.position,
 
-                    EventType = currentEventType,
-                    EventData = currentEventData
+                    EventType = eventType,
+                    EventData = dataFrame
                 };
 
-                return dataToSend;
+                EnqueuePacket(JsonConvert.SerializeObject(dataToSend));
             }
-            else
+        }
+
+        private IEnumerator SendPackets()
+        {
+            while (true)
             {
-                return null;
+                if (nQc > 0)
+                {
+                    string packet = nQ.Dequeue();
+                    SendData(packet);
+                    nQc--;
+                }
+
+                yield return new WaitForEndOfFrame();
             }
         }
     }

@@ -848,6 +848,7 @@ namespace ExeudVR
                 {
                     currentNearSharedAsset = sharedAsset;
                     currentNearSharedAsset.IsBeingHandled = true;
+
                     InvokeAcquisitionEvent(currentNearSharedAsset.Id, currentNearObject.transform, ManipulationDistance.Near);
                 }
                 else
@@ -914,9 +915,8 @@ namespace ExeudVR
         }
 
 
-        private bool InvokeAcquisitionEvent(string target, Transform interactionTransform, ManipulationDistance distance)
+        private void InvokeAcquisitionEvent(string target, Transform interactionTransform, ManipulationDistance distance)
         {
-            // check for shared asset id
             if (!string.IsNullOrEmpty(target))
             {
                 AcquireData newAcquisition = new AcquireData
@@ -927,19 +927,14 @@ namespace ExeudVR
                 };
 
                 AvatarHandlingData interactionEvent = BuildEventFrame(target, distance, AvatarInteractionEventType.AcquireData, newAcquisition, null);
+
                 OnHandInteraction?.Invoke(interactionEvent);
-                return true;
-            }
-            else
-            {
-                return false;
             }
         }
 
 
-        private bool InvokeReleaseEvent(string target, GameObject interactionObject, ManipulationDistance distance, ThrowData throwData)
+        private void InvokeReleaseEvent(string target, GameObject interactionObject, ManipulationDistance distance, ThrowData throwData)
         {
-            // check for shared asset id
             if (!string.IsNullOrEmpty(target))
             {
                 ReleaseData newRelease = new ReleaseData
@@ -951,17 +946,12 @@ namespace ExeudVR
                 };
 
                 AvatarHandlingData interactionEvent = BuildEventFrame(target, distance, AvatarInteractionEventType.ReleaseData, null, newRelease);
+
                 OnHandInteraction.Invoke(interactionEvent);
-                return true;
-            }
-            else
-            {
-                return false;
             }
         }
 
-        private AvatarHandlingData BuildEventFrame(string targetId, ManipulationDistance distance,
-            AvatarInteractionEventType eventType, AcquireData acqDataFrame = null, ReleaseData relDataFrame = null)
+        private AvatarHandlingData BuildEventFrame(string targetId, ManipulationDistance distance, AvatarInteractionEventType eventType, AcquireData acqDataFrame = null, ReleaseData relDataFrame = null)
         {
             AvatarHandlingData eventFrame = new AvatarHandlingData
             {

@@ -41,8 +41,9 @@ namespace ExeudVR.SharedAssets
         {
             if (isNetworkAvailable)
             {
-                _manager = SharedAssetManager.Instance;
                 Id = GetGameObjectPath(gameObject);
+
+                _manager = SharedAssetManager.Instance;
                 _manager.IncludeAssetInRegister(Id, gameObject);
             }
         }

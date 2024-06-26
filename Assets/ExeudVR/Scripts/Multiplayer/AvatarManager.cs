@@ -27,12 +27,10 @@ namespace ExeudVR
         public delegate void DictionaryChanged(int noPlayersNow);
         public event DictionaryChanged OnDictionaryChanged;
 
-        private Dictionary<string, GameObject> otherPlayers;
         private Dictionary<string, AvatarController> avatarControllers;
 
         private bool readyToCreateAvatar = false;
         private NodeDataFrame currentDataFrame;
-
 
         private void Awake()
         {
@@ -48,7 +46,6 @@ namespace ExeudVR
 
         void Start()
         {
-            otherPlayers = new Dictionary<string, GameObject>();
             avatarControllers = new Dictionary<string, AvatarController>();
             AudioChannelOpen = false;
         }
@@ -61,26 +58,25 @@ namespace ExeudVR
                 readyToCreateAvatar = false;
                 currentDataFrame = null;
             }
-
         }
 
         private void OnDestroy()
         {
-            foreach (string user in otherPlayers.Keys)
+            foreach (string user in avatarControllers.Keys)
             {
                 RemovePlayerAvatar(user);
             }
-            otherPlayers.Clear();
-            otherPlayers = null;
+            avatarControllers.Clear();
+            avatarControllers = null;
         }
 
 
         public void ResetScene()
         {
             //remove all entries from lists
-            foreach (string user in otherPlayers.Keys)
+            foreach (string av in avatarControllers.Keys)
             {
-                RemovePlayerAvatar(user);
+                RemovePlayerAvatar(av);
             }
 
             // make sure all stray children are removed
@@ -89,14 +85,11 @@ namespace ExeudVR
                 Destroy(transform.GetChild(t).gameObject);
             }
 
-            // make new dictionaries
-            otherPlayers.Clear();
+            // make new dictionary
             avatarControllers.Clear();
-            otherPlayers = new Dictionary<string, GameObject>();
             avatarControllers = new Dictionary<string, AvatarController>();
             AudioChannelOpen = false;
         }
-
 
         public void ProcessAvatarData(NodeInputData nodeFrame)
         {
@@ -113,42 +106,35 @@ namespace ExeudVR
             }
         }
 
-
         public void CreateNewPlayerAvatar(NodeDataFrame nodeFrame)
         {
-            GameObject newPlayerObject = Instantiate(avatarTemplate, nodeFrame.HeadPosition, nodeFrame.HeadRotation, this.transform);
-            newPlayerObject.name = nodeFrame.Id;
+            GameObject newPlayer = Instantiate(avatarTemplate, nodeFrame.HeadPosition, nodeFrame.HeadRotation, this.transform);
+            newPlayer.name = nodeFrame.Id;
 
-            if (!otherPlayers.ContainsKey(nodeFrame.Id))
+            if (!avatarControllers.ContainsKey(newPlayer.name))
             {
-                otherPlayers.Add(nodeFrame.Id, newPlayerObject);
-            }
-
-            if (!avatarControllers.ContainsKey(newPlayerObject.name))
-            {
-                AvatarController avCon = newPlayerObject.GetComponent<AvatarController>();
+                AvatarController avCon = newPlayer.GetComponent<AvatarController>();
                 avatarControllers.Add(nodeFrame.Id, avCon);
                 avCon.Initialise();
             }
 
-            OnDictionaryChanged?.Invoke(otherPlayers.Count);
+            OnDictionaryChanged?.Invoke(avatarControllers.Count);
         }
 
         public void RemovePlayerAvatar(string userId)
         {
-            if (otherPlayers.TryGetValue(userId, out GameObject playerObject))
+            if (avatarControllers.TryGetValue(userId, out AvatarController aC))
             {
-                playerObject.GetComponent<AvatarController>().EndSession();
+                aC.EndSession();
                 avatarControllers.Remove(userId);
-                otherPlayers.Remove(userId);
-                Destroy(playerObject);
+                Destroy(aC);
 
-                if (otherPlayers.Count == 0)
+                if (avatarControllers.Count == 0)
                 {
                     AudioChannelOpen = false;
                 }
 
-                OnDictionaryChanged?.Invoke(otherPlayers.Count);
+                OnDictionaryChanged?.Invoke(avatarControllers.Count);
             }
         }
     }
