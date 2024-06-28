@@ -607,11 +607,11 @@ namespace ExeudVR
 
             if (value > 0)
             {
-                CharacterRoot.transform.RotateAround(CharacterRoot.transform.position, Vector3.up, 60);
+                CharacterRoot.transform.RotateAround(vrGuideCam.transform.position, Vector3.up, 60);
             }
             else
             {
-                CharacterRoot.transform.RotateAround(CharacterRoot.transform.position, Vector3.up, -60);
+                CharacterRoot.transform.RotateAround(vrGuideCam.transform.position, Vector3.up, -60);
             }
         }
 

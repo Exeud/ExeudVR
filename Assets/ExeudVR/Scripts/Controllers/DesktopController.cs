@@ -379,14 +379,14 @@ namespace ExeudVR
 
             if (IsGameMode)
             {
-                Quaternion camQuat = GetCameraRotationFromMouse(mouseSensitivity, 1.0f * globalInvertMouse);
+                Quaternion camQuat = GetCameraRotationFromMouse(10f * mouseSensitivity, 1.0f * globalInvertMouse);
                 StartCoroutine(RotateCamera(camQuat, mouseSensitivity));
             }
             else
             {
                 if (isMouseDown)
                 {
-                    Quaternion camQuat = GetCameraRotationFromMouse(mouseSensitivity, -1.0f * dragMod * globalInvertMouse);
+                    Quaternion camQuat = GetCameraRotationFromMouse(10f * mouseSensitivity, -1.0f * dragMod * globalInvertMouse);
                     StartCoroutine(RotateCamera(camQuat, mouseSensitivity));
                 }
             }
@@ -426,9 +426,9 @@ namespace ExeudVR
 
             float rotationTimer = 0.0f;
 
-            while (rotationTimer < 0.8)
+            while (rotationTimer < 1.0f)
             {
-                rotationTimer += Time.smoothDeltaTime * 1f;
+                rotationTimer += Time.deltaTime * (1f / speed);
                 transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, rotationTimer * speed);
                 yield return new WaitForEndOfFrame();
             }

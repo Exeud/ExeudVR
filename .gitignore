@@ -11,6 +11,8 @@
 /[Ll]ogs/
 /[Uu]ser[Ss]ettings/
 
+/Assets/Testing
+
 # MemoryCaptures can get excessive in size.
 # They also could contain extremely sensitive data
 /[Mm]emoryCaptures/
@@ -73,8 +75,6 @@ crashlytics-build.properties
 /[Aa]ssets/[Aa]ddressable[Aa]ssets[Dd]ata/*/*.bin*
 
 # Temporary auto-generated Android Assets
-/[Aa]ssets/[Ss]treamingAssets/aa.meta
-/[Aa]ssets/[Ss]treamingAssets/aa/*
-/Assets/ICVR/Scenes/TestSceneCanister
-/Packages/YamlDotNet.13.4.0
-/Assets/Testing
+/[Aa]ssets/[Ss]treamingAssets/*.meta
+/[Aa]ssets/[Ss]treamingAssets/*/*
+

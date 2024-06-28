@@ -73,6 +73,7 @@ namespace ExeudVR
             isGameMode = visibility;
             int isActive = (isGameMode ? 1 : 0) * 255;
             crosshair.SetColor(CrosshairColorChannel.ALPHA, isActive, true);
+            crosshair.SetActive(visibility);
         }
 
         public void SetFocusedObject(GameObject inFocus)

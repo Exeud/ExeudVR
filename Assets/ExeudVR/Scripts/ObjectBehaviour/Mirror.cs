@@ -227,7 +227,7 @@ public class Mirror : MonoBehaviour
             portalTexture.isPowerOfTwo = true; // https://docs.unity3d.com/Manual/Textures.html: Non power of two texture assets can be scaled up at import time using the Non Power of 2 option in the advanced texture type in the import settings. Unity will scale texture contents as requested, and in the game they will behave just like any other texture, so they can still be compressed and very fast to load.
             portalTexture.hideFlags = HideFlags.DontSave; // The object will not be saved to the Scene. It will not be destroyed when a new Scene is loaded.
 
-            portalTexture.antiAliasing = 4; // < <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<ResourceIntensive but pretty
+            portalTexture.antiAliasing = 2; // < <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<ResourceIntensive but pretty
 
             m_OldReflectionTextureSize = m_TextureSize; // save the old texture size
         }
