@@ -2,6 +2,8 @@
 
 Welcome to ExeudVR, helping you to build, host and share immersive experiences on the Internet Computer. This repository - a Unity toolkit - features modules that add dynamic physics, interaction, a rigged body and p2p multiplayer functionality to your Unity scene. Once built, it can be used with the [exeudvr-canister](https://github.com/willguest/exeudvr-canister) repository, to self-host these interactive experience on the bloackchain.
 
+![317674693-e58d788d-b342-48f6-a6f9-e7550312ecdf](https://github.com/user-attachments/assets/b32d8473-7156-4d29-889f-b8266fd54508)
+
 ## 📦 Steps to create a new immersive experience
 
 Make sure that [Unity 2020 LTS](https://unity.com/releases/editor/archive#download-archive-2020) is installed on your system.
