@@ -64,10 +64,12 @@ namespace ExeudVR
                             Transform cPose = (WieldState == ControllerHand.RIGHT) ? controlPoseRight : controlPoseLeft;
 
                             HandTraceSecondary = handTransform;
-                            WieldState = ControllerHand.BOTH;
-                            OnSecondHand?.Invoke(hand, handTransform, HandTracePrimary);
-                            SetLayerRecursively(handTransform.gameObject, LayerMask.NameToLayer("Body"));
-                            HandTracePrimary.GetComponent<XRController>().ModifyJoint(0);
+							WieldState = ControllerHand.BOTH;
+							SetLayerRecursively(handTransform.gameObject, LayerMask.NameToLayer("Body"));
+
+							// perform setup and take control of the connected body
+							OnSecondHand?.Invoke(hand, handTransform, HandTracePrimary);
+							HandTracePrimary.GetComponent<XRController>().ModifyJoint(0);
                             return false;
                         }
                         else

@@ -60,5 +60,14 @@ namespace ExeudVR.SharedAssets
             return false;
         }
 
+		public bool UpdateSharedAsset(string Id, GameObject asset)
+		{
+			if (SharedAssetRegister.ContainsKey(Id))
+			{
+				SharedAssetRegister[Id] = asset;
+				return true;
+			}
+			return false;
+		}
     }
 }

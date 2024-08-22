@@ -6,8 +6,12 @@ namespace ExeudVR
     {
         [SerializeField] private float MaxInteractionDistance = 15.0f;
         [SerializeField] private LayerMask PointerLayerMask;
-        //[SerializeField] private GameObject PointerRing;
         [SerializeField] private Transform PointerLine;
+
+        // 'RingLock' is an experimental idea for having a wider selection area at a greater distance.
+        // Meant for devs at this point, it might be introduced in a later version.
+
+        //[SerializeField] private GameObject PointerRing;
 
         private GameObject currentObject;
         private Transform parentHand;
@@ -15,12 +19,12 @@ namespace ExeudVR
 
         private void OnEnable()
         {
-            //PointerRing.GetComponent<RingLock>().locked += ToggleRingLock;
+            //PointerRing.GetComponent<RingLock>().locked += SetRingLock;
         }
 
         private void OnDisable()
         {
-            //PointerRing.GetComponent<RingLock>().locked -= ToggleRingLock;
+            //PointerRing.GetComponent<RingLock>().locked -= SetRingLock;
         }
 
         private void Start()
@@ -28,7 +32,7 @@ namespace ExeudVR
             parentHand = transform.parent;   
         }
 
-        private void ToggleRingLock(bool locked)
+        private void SetRingLock(bool locked)
         {
             HasRingLock = locked;
         }

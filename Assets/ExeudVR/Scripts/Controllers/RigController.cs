@@ -64,7 +64,6 @@ namespace ExeudVR
                 footPlate.transform.position = Vector3.Lerp(footPlate.transform.position, footTarget, 0.05f);
             }
 
-            
         }
 
         private void FixedUpdate()

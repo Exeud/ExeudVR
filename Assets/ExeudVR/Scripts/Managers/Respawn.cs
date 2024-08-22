@@ -4,7 +4,6 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-using System.Collections.Generic;
 using UnityEngine;
 using ExeudVR.SharedAssets;
 
@@ -18,12 +17,6 @@ namespace ExeudVR
     {
         [SerializeField] private Transform DefaultRespawnPose;
         [SerializeField] private GameObject characterRoot;
-        [SerializeField] private List<GameObject> characterColliders;
-
-        void Start()
-        {
-
-        }
 
         void OnTriggerEnter(Collider col)
         {
