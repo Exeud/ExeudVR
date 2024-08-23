@@ -6,8 +6,8 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/Testing/TerrainTest.unity
-    guid: 53d89095b43ffa343bedacc6bbbf4d80
+    path: Assets/ExeudVR/Scenes/TestSceneCanister.unity
+    guid: 1b70327924fa9b14ebae54dff172ce82
   m_configObjects:
     WebXR.Settings: {fileID: 11400000, guid: cad95dc98ae5b84479fa7cb4685e3cdb, type: 2}
     com.unity.xr.management.loader_settings: {fileID: 11400000, guid: 82696c7857899ae428201fca6e3e42f3, type: 2}

@@ -63,7 +63,7 @@ namespace ExeudVR
         public event RoomJoinEvent OnJoinedRoom;
 
         // private connection variables
-        private string roomPrefix = "ICVR-";
+        private string roomPrefix = "ExeudVR-";
         private string roomString = "";
         private int RoomCapacity = 6;
         private int roomNumber = 0;
