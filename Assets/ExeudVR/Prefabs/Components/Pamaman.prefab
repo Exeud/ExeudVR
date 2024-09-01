@@ -2821,11 +2821,11 @@ MonoBehaviour:
     trackingRotationOffset: {x: 0, y: 0, z: 0}
   LeftHand:
     rigTarget: {fileID: 6726383518386463857}
-    trackingPositionOffset: {x: 0, y: 0, z: -0.1}
+    trackingPositionOffset: {x: 0, y: 0, z: 0}
     trackingRotationOffset: {x: 0, y: 90, z: 90}
   RightHand:
     rigTarget: {fileID: 5392661466500296253}
-    trackingPositionOffset: {x: 0, y: 0, z: -0.1}
+    trackingPositionOffset: {x: 0, y: 0, z: 0}
     trackingRotationOffset: {x: 0, y: -90, z: -90}
 --- !u!114 &3965463601833783291
 MonoBehaviour:

@@ -242,6 +242,6 @@ Preset:
     objectReference: {fileID: 0}
   - target: {fileID: 0}
     propertyPath: m_CameraRelativeShadowCulling
-    value: 0
+    value: 1
     objectReference: {fileID: 0}
   m_ExcludedProperties: []

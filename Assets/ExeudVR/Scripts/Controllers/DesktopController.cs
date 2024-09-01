@@ -6,7 +6,6 @@
 
 using UnityEngine;
 using System;
-using WebXR;
 using ExeudVR.SharedAssets;
 
 namespace ExeudVR
@@ -27,8 +26,8 @@ namespace ExeudVR
         [Tooltip("Character physics container")]
         [SerializeField] private GameObject CharacterVehicle;
 
-        [Tooltip("Mouse sensitivity")]
-        [SerializeField] private float mouseSensitivity = 2f;
+        [Tooltip("Mouse sensitivity"), Range(0.5f, 5.0f)]
+        [SerializeField] private float mouseSensitivity = 2.0f;
 
         [Tooltip("(Optional) Joysick for character movement on mobile devices")]
         [SerializeField] private Canvas JoystickRoot;
@@ -36,20 +35,18 @@ namespace ExeudVR
         [Tooltip("Joystick sensitivity, when present")]
         [SerializeField] private float joystickMultiplier = 3f;
 
+        [Tooltip("Which layers should the cursor interact with")]
+        [SerializeField] private LayerMask pointerLayerMask;
+
 
         // Public Attributes
-        public GameObject CurrentObject { get; set; }
+        public GameObject CurrentObject { get; private set; }
 
         public float CurrentDistance { get; private set; }
 
         public Vector3 CurrentHitPoint { get; private set; }
 
         public bool IsGameMode { get; set; }
-
-
-        // Cursor event handling   
-        public event BodyController.CursorFocus OnObjectFocus;
-        public event BodyController.ObjectTrigger OnObjectTrigger;
 
         public delegate void CursorInteraction(AvatarHandlingData interactionData);
         public event CursorInteraction OnNetworkInteraction;
@@ -59,7 +56,7 @@ namespace ExeudVR
 
         private Camera _camera;
 
-        private WebXRState xrState = WebXRState.NORMAL;
+        private XRState xrState = XRState.NORMAL;
         private VariableJoystick variableJoystick;
 
         private bool wasKinematic = false;
@@ -68,11 +65,11 @@ namespace ExeudVR
         private float runFactor = 1.0f;
         private float jumpCool = 1.0f;
 
-        private float minimumX = -360f;
-        private float maximumX = 360f;
+        private readonly float minimumX = -360f;
+        private readonly float maximumX = 360f;
 
-        private float minimumY = -90f;
-        private float maximumY = 90f;
+        private readonly float minimumY = -90f;
+        private readonly float maximumY = 90f;
 
         private float rotationX = 0f;
         private float rotationY = 0f;
@@ -121,11 +118,13 @@ namespace ExeudVR
             {
                 variableJoystick = JoystickRoot.GetComponentInChildren<VariableJoystick>();
             }
+
+            PlatformManager.Instance.OnStateChange += OnXRChange;
         }
 
         void FixedUpdate()
         {
-            if (xrState != WebXRState.NORMAL) { return; }
+            if (xrState != XRState.NORMAL) { return; }
 
             // set character pose
             MoveBodyWithKeyboard();
@@ -145,17 +144,12 @@ namespace ExeudVR
             }
         }
 
-        private void OnEnable()
-        {
-            WebXRManager.OnXRChange += OnXRChange;
-        }
-
         private void OnDisable()
         {
-            WebXRManager.OnXRChange -= OnXRChange;
+            PlatformManager.Instance.OnStateChange -= OnXRChange;
         }
 
-        private void OnXRChange(WebXRState state, int viewsCount, Rect leftRect, Rect rightRect)
+        private void OnXRChange(XRState state)
         {
             xrState = state;
             if (CursorManager.Instance != null)
@@ -169,7 +163,6 @@ namespace ExeudVR
             }
         }
 
-
         #endregion ----- Unity Functions ------
 
 
@@ -177,9 +170,9 @@ namespace ExeudVR
 
         void OnGUI()
         {
-            if (xrState != WebXRState.NORMAL) { return; }
+            if (xrState != XRState.NORMAL) { return; }
 
-            HandleCursorFocus();
+            CursorManager.Instance.HandleCursorFocus(CurrentObject);
 
             Event e = Event.current;
 
@@ -200,16 +193,12 @@ namespace ExeudVR
 
                 if (e.clickCount == 2)
                 {
-                    DoubleClick();
+                    CursorManager.Instance.DoubleClick();
                     isMouseDown = false;
                 }
 
                 if (e.type == EventType.MouseDown && e.button == 0 && CurrentObject != null)
                 {
-                    if (CursorManager.Instance != null)
-                    {
-                        CursorManager.Instance.SetFocusedObject(CurrentObject);
-                    }
 
                     if (CurrentObject.layer == 9 || CurrentObject.layer == 14)
                     {
@@ -255,7 +244,6 @@ namespace ExeudVR
                     }
                 }
             }
-
 
             // keyboard events
             else if (e.type == EventType.KeyDown)
@@ -379,15 +367,15 @@ namespace ExeudVR
 
             if (IsGameMode)
             {
-                Quaternion camQuat = GetCameraRotationFromMouse(10f * mouseSensitivity, 1.0f * globalInvertMouse);
-                StartCoroutine(RotateCamera(camQuat, mouseSensitivity));
+                Quaternion camQuat = GetCameraRotationFromMouse(mouseSensitivity, 1.0f * globalInvertMouse);
+                StartCoroutine(RotateCamera(camQuat, 10f));
             }
             else
             {
                 if (isMouseDown)
                 {
-                    Quaternion camQuat = GetCameraRotationFromMouse(10f * mouseSensitivity, -1.0f * dragMod * globalInvertMouse);
-                    StartCoroutine(RotateCamera(camQuat, mouseSensitivity));
+                    Quaternion camQuat = GetCameraRotationFromMouse(mouseSensitivity, -1.0f * dragMod * globalInvertMouse);
+                    StartCoroutine(RotateCamera(camQuat, 10f));
                 }
             }
         }
@@ -434,35 +422,10 @@ namespace ExeudVR
             }
         }
 
-
         #endregion ----- Character Movement ------
 
 
         #region ----- Object Interaction ------
-
-        private void HandleCursorFocus()
-        {
-            if (CurrentObject == null) return;
-
-            if (CursorManager.Instance != null)
-            {
-                CursorManager.Instance.SetFocusedObject(CurrentObject);
-            }
-
-            int layer = CurrentObject.layer;
-            if (layer >= 9 && layer <= 15)
-            {
-                // scene layer removes focus
-                if (layer != 11)
-                {
-                    InvokeFocusEvent(CurrentObject, true);
-                }
-                else
-                {
-                    InvokeFocusEvent(null, false);
-                }
-            }
-        }
 
         private GameObject PickUpObject(GameObject ooi)
         {
@@ -525,11 +488,6 @@ namespace ExeudVR
             }
 
             activeMesh = null;
-        }
-
-        private void InvokeFocusEvent(GameObject focalObject, bool state)
-        {
-            OnObjectFocus?.Invoke(focalObject, state);
         }
 
         private void InvokeAcquisitionEvent(string target, Transform interactionTransform)
@@ -615,17 +573,6 @@ namespace ExeudVR
             }
         }
 
-        private void DoubleClick()
-        {
-            if (CurrentObject != null)
-            {
-                if (CurrentObject.TryGetComponent(out ObjectInterface objInt))
-                {
-                    OnObjectTrigger?.Invoke(objInt.gameObject, 0.75f);
-                }
-            }
-        }
-
         private GameObject ScreenRaycast(bool fromTouch = false)
         {
             if (!_camera.isActiveAndEnabled) return null;
@@ -643,7 +590,7 @@ namespace ExeudVR
                 ray = _camera.ScreenPointToRay(Input.mousePosition, Camera.MonoOrStereoscopicEye.Mono);
             }
 
-            if (Physics.Raycast(ray, out RaycastHit pointerHit, 60.0f, Physics.DefaultRaycastLayers))
+            if (Physics.Raycast(ray, out RaycastHit pointerHit, 60.0f, pointerLayerMask))
             {
                 CurrentHitPoint = pointerHit.point;
                 CurrentDistance = pointerHit.distance;

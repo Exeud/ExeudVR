@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using WebXR;
 
 namespace ExeudVR
 {
@@ -22,20 +21,17 @@ namespace ExeudVR
         private Quaternion UiStartRot;
         private Vector3 footTarget;
 
-        private WebXRState xrState = WebXRState.NORMAL;
-
-        private void OnEnable()
-        {
-            WebXRManager.OnXRChange += OnXRChange;
-        }
+        private XRState xrState = XRState.NORMAL;
 
         private void OnDisable()
         {
-            WebXRManager.OnXRChange -= OnXRChange;
+            PlatformManager.Instance.OnStateChange -= OnXRChange;
         }
 
         public void Start()
         {
+            PlatformManager.Instance.OnStateChange += OnXRChange;
+
             BodyOffset = (cameraReference.position - transform.position) / 2f;
 
             UiOffset = HUDObjectRoot.transform.position - transform.position;
@@ -68,7 +64,7 @@ namespace ExeudVR
 
         private void FixedUpdate()
         {
-            if (xrState == WebXRState.NORMAL)
+            if (xrState == XRState.NORMAL)
             {
                 if (HUDObjectRoot.activeInHierarchy)
                 {
@@ -79,11 +75,11 @@ namespace ExeudVR
             }
         }
 
-        private void OnXRChange(WebXRState state, int viewsCount, Rect leftRect, Rect rightRect)
+        private void OnXRChange(XRState state)
         {
             xrState = state;
             transform.localRotation = Quaternion.identity;
-            HUDObjectRoot.SetActive(xrState == WebXRState.NORMAL);
+            HUDObjectRoot.SetActive(xrState == XRState.NORMAL);
         }
     }
 }

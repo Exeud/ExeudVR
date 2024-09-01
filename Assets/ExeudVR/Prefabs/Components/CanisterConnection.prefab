@@ -11,8 +11,8 @@ GameObject:
   - component: {fileID: 5117421523008241160}
   - component: {fileID: 1716325601735521766}
   - component: {fileID: 8134308850058106535}
-  m_Layer: 0
-  m_Name: sign
+  m_Layer: 5
+  m_Name: icp_logo
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -347,7 +347,7 @@ GameObject:
   - component: {fileID: 2723482660167115966}
   - component: {fileID: 2723482660167115965}
   - component: {fileID: 2723482660167115964}
-  m_Layer: 0
+  m_Layer: 5
   m_Name: GlowCube
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -661,7 +661,7 @@ GameObject:
   - component: {fileID: 1666701990501783209}
   - component: {fileID: 6872538307374658354}
   - component: {fileID: 4138063968964279323}
-  m_Layer: 0
+  m_Layer: 5
   m_Name: name
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -741,7 +741,7 @@ GameObject:
   - component: {fileID: 3065229613369093761}
   - component: {fileID: 8190349249891800535}
   - component: {fileID: 4159570340518049401}
-  m_Layer: 0
+  m_Layer: 5
   m_Name: CanvasLogo
   m_TagString: Untagged
   m_Icon: {fileID: 0}

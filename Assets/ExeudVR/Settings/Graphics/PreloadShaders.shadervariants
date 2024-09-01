@@ -11,17 +11,12 @@ ShaderVariantCollection:
   - first: {fileID: 10770, guid: 0000000000000000f000000000000000, type: 0}
     second:
       variants:
-      - keywords: LIGHTPROBE_SH _DEPTH_NO_MSAA _MAIN_LIGHT_SHADOWS
+      - keywords: LIGHTPROBE_SH _DEPTH_NO_MSAA _SHADOWS_SOFT
         passType: 0
   - first: {fileID: 66, guid: 0000000000000000f000000000000000, type: 0}
     second:
       variants:
       - keywords: 
-        passType: 0
-  - first: {fileID: 106, guid: 0000000000000000f000000000000000, type: 0}
-    second:
-      variants:
-      - keywords: _DEPTH_NO_MSAA _MAIN_LIGHT_SHADOWS _SUNDISK_SIMPLE
         passType: 0
   - first: {fileID: 9000, guid: 0000000000000000f000000000000000, type: 0}
     second:
@@ -61,56 +56,87 @@ ShaderVariantCollection:
   - first: {fileID: 9103, guid: 0000000000000000f000000000000000, type: 0}
     second:
       variants:
-      - keywords: _DEPTH_NO_MSAA _MAIN_LIGHT_SHADOWS
+      - keywords: UNITY_HDR_ON _ADDITIONAL_LIGHTS _DEPTH_NO_MSAA
+        passType: 0
+      - keywords: _DEPTH_NO_MSAA _SHADOWS_SOFT
         passType: 0
   - first: {fileID: 4800000, guid: c17132b1f77d20942aa75f8429c0f8bc, type: 3}
     second:
       variants:
-      - keywords: _DEPTH_NO_MSAA _MAIN_LIGHT_SHADOWS
+      - keywords: UNITY_HDR_ON _ADDITIONAL_LIGHTS _DEPTH_NO_MSAA
+        passType: 0
+      - keywords: _DEPTH_NO_MSAA _SHADOWS_SOFT
+        passType: 0
+      - keywords: _DEPTH_NO_MSAA _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE
+          _SHADOWS_SOFT
         passType: 0
   - first: {fileID: 4800000, guid: 933532a4fcc9baf4fa0491de14d08ed7, type: 3}
     second:
       variants:
       - keywords: 
         passType: 8
+      - keywords: INSTANCING_ON
+        passType: 8
       - keywords: _NORMALMAP
         passType: 8
-      - keywords: _RECEIVE_SHADOWS_OFF _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
+      - keywords: _DEPTH_NO_MSAA _NORMALMAP
         passType: 8
-      - keywords: _ENVIRONMENTREFLECTIONS_OFF _METALLICSPECGLOSSMAP _NORMALMAP _OCCLUSIONMAP
-        passType: 8
-      - keywords: _ENVIRONMENTREFLECTIONS_OFF _RECEIVE_SHADOWS_OFF _SPECULARHIGHLIGHTS_OFF
-        passType: 8
-      - keywords: _SPECULAR_SETUP
-        passType: 8
-      - keywords: _MAIN_LIGHT_SHADOWS
+      - keywords: 
         passType: 13
-      - keywords: _DEPTH_NO_MSAA _MAIN_LIGHT_SHADOWS
+      - keywords: _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE
         passType: 13
-      - keywords: _DEPTH_NO_MSAA _MAIN_LIGHT_SHADOWS _NORMALMAP
+      - keywords: _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _SHADOWS_SOFT
         passType: 13
-      - keywords: LIGHTPROBE_SH _DEPTH_NO_MSAA _MAIN_LIGHT_SHADOWS _RECEIVE_SHADOWS_OFF
+      - keywords: _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _NORMALMAP
         passType: 13
-      - keywords: _DEPTH_NO_MSAA _MAIN_LIGHT_SHADOWS _RECEIVE_SHADOWS_OFF _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
+      - keywords: _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _NORMALMAP _SHADOWS_SOFT
         passType: 13
-      - keywords: _DEPTH_NO_MSAA _ENVIRONMENTREFLECTIONS_OFF _MAIN_LIGHT_SHADOWS
-          _METALLICSPECGLOSSMAP _NORMALMAP _OCCLUSIONMAP
+      - keywords: _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _RECEIVE_SHADOWS_OFF
         passType: 13
-      - keywords: DIRLIGHTMAP_COMBINED LIGHTMAP_ON _DEPTH_NO_MSAA _ENVIRONMENTREFLECTIONS_OFF
-          _MAIN_LIGHT_SHADOWS _METALLICSPECGLOSSMAP _NORMALMAP _OCCLUSIONMAP
+      - keywords: _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _NORMALMAP _RECEIVE_SHADOWS_OFF
         passType: 13
-      - keywords: _DEPTH_NO_MSAA _ENVIRONMENTREFLECTIONS_OFF _MAIN_LIGHT_SHADOWS
-          _RECEIVE_SHADOWS_OFF _SPECULARHIGHLIGHTS_OFF
+      - keywords: _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _NORMALMAP _RECEIVE_SHADOWS_OFF
+          _SHADOWS_SOFT
         passType: 13
-      - keywords: _DEPTH_NO_MSAA _MAIN_LIGHT_SHADOWS _SPECULAR_SETUP
+      - keywords: _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _NORMALMAP _OCCLUSIONMAP
+          _SHADOWS_SOFT
         passType: 13
-  - first: {fileID: 4800000, guid: 8516d7a69675844a7a0b7095af7c46af, type: 3}
-    second:
-      variants:
-      - keywords: _DEPTH_NO_MSAA _EMISSION _MAIN_LIGHT_SHADOWS _RECEIVE_SHADOWS_OFF
+      - keywords: _ENVIRONMENTREFLECTIONS_OFF _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE
+          _METALLICSPECGLOSSMAP _NORMALMAP _OCCLUSIONMAP _SHADOWS_SOFT
         passType: 13
-  - first: {fileID: 4800000, guid: 0d253da60186cc04a9ca9cdc983c4463, type: 3}
+      - keywords: _ENVIRONMENTREFLECTIONS_OFF _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE
+          _RECEIVE_SHADOWS_OFF _SHADOWS_SOFT _SPECULARHIGHLIGHTS_OFF
+        passType: 13
+      - keywords: _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _SHADOWS_SOFT _SPECULAR_SETUP
+        passType: 13
+      - keywords: UNITY_HDR_ON _ADDITIONAL_LIGHTS _DEPTH_NO_MSAA _RECEIVE_SHADOWS_OFF
+          _SPECULAR_SETUP
+        passType: 13
+      - keywords: _DEPTH_NO_MSAA _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE
+          _RECEIVE_SHADOWS_OFF _SHADOWS_SOFT _SPECULAR_SETUP
+        passType: 13
+  - first: {fileID: 4800000, guid: 8d2bb70cbf9db8d4da26e15b26e74248, type: 3}
     second:
       variants:
       - keywords: 
+        passType: 8
+      - keywords: _RECEIVE_SHADOWS_OFF
+        passType: 8
+      - keywords: _EMISSION _RECEIVE_SHADOWS_OFF
+        passType: 8
+      - keywords: 
         passType: 13
+      - keywords: _SHADOWS_SOFT
+        passType: 13
+      - keywords: _RECEIVE_SHADOWS_OFF
+        passType: 13
+      - keywords: _RECEIVE_SHADOWS_OFF _SHADOWS_SOFT
+        passType: 13
+      - keywords: _EMISSION _RECEIVE_SHADOWS_OFF _SHADOWS_SOFT
+        passType: 13
+  - first: {fileID: 4800000, guid: 7b09eb0a84f83cd4cb56977734ecd025, type: 3}
+    second:
+      variants:
+      - keywords: _DEPTH_NO_MSAA _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE
+          _SHADOWS_SOFT _SUNDISK_SIMPLE
+        passType: 0

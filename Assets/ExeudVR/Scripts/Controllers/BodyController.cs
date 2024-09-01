@@ -9,7 +9,7 @@ using System.Runtime.InteropServices;
 using Newtonsoft.Json;
 using ExeudVR.SharedAssets;
 using UnityEngine;
-using WebXR;
+
 using System.Collections.Generic;
 
 namespace ExeudVR
@@ -65,23 +65,23 @@ namespace ExeudVR
 
         private void OnEnable()
         {
-            WebXRManager.OnXRChange += OnXRChange;
+            
         }
 
         private void OnDisable()
         {
-            WebXRManager.OnXRChange -= OnXRChange;
+            PlatformManager.Instance.OnStateChange -= OnXRChange;
             MapEvents(false);
         }
 
-        private void OnXRChange(WebXRState state, int viewsCount, Rect leftRect, Rect rightRect)
+        private void OnXRChange(XRState state)
         {
-            MapControllerEvents(state == WebXRState.VR);
+            MapControllerEvents(state == XRState.VR);
 
             // toggle hand IK
             if (avatar != null)
             {
-                if (state == WebXRState.NORMAL)
+                if (state == XRState.NORMAL)
                 {
                     avatar.RelaxArmRig();
                 }
@@ -151,8 +151,8 @@ namespace ExeudVR
                     NetworkIO.Instance.OnJoinedRoom += InitialiseDataChannel;
                 }
 
-                DesktopController.Instance.OnObjectFocus += HandleObjectFocus;
-                DesktopController.Instance.OnObjectTrigger += HandleObjectTrigger;
+                CursorManager.Instance.OnObjectFocus += HandleObjectFocus;
+                CursorManager.Instance.OnObjectTrigger += HandleObjectTrigger;
                 DesktopController.Instance.OnNetworkInteraction += PackageEventData;
 
             }
@@ -170,8 +170,8 @@ namespace ExeudVR
 
                 IsConnectionReady = false;
 
-                DesktopController.Instance.OnObjectFocus -= HandleObjectFocus;
-                DesktopController.Instance.OnObjectTrigger -= HandleObjectTrigger;
+                CursorManager.Instance.OnObjectFocus -= HandleObjectFocus;
+                CursorManager.Instance.OnObjectTrigger -= HandleObjectTrigger;
                 DesktopController.Instance.OnNetworkInteraction -= PackageEventData;
             }
         }
@@ -183,6 +183,8 @@ namespace ExeudVR
 
         void Start()
         {
+            PlatformManager.Instance.OnStateChange += OnXRChange;
+
             MapEvents(true);
             nQ.Clear();
 

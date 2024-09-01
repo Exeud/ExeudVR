@@ -43,25 +43,37 @@ namespace ExeudVR
 
         public void ToggleActivation(GameObject manipulator, bool state)
         {
-            if (manipulator == gameObject)
+            // 2D
+            if (!manipulator || manipulator.GetComponent<CursorManager>())
             {
-                manipulator = null;
-            }
-
-            if (state)
-            {
-                if (ReceiveControl(manipulator))
+                if (state)
                 {
                     IsBeingUsed = state;
                     OnGetFocusEvent?.Invoke();
                 }
-            }
-            else
-            {
-                if (LoseControl())
+                else
                 {
                     OnLoseFocusEvent?.Invoke();
                     IsBeingUsed = state;
+                }
+            }
+            else // VR
+            {
+                if (state)
+                {
+                    if (ReceiveControl(manipulator))
+                    {
+                        IsBeingUsed = state;
+                        OnGetFocusEvent?.Invoke();
+                    }
+                }
+                else
+                {
+                    if (LoseControl())
+                    {
+                        OnLoseFocusEvent?.Invoke();
+                        IsBeingUsed = state;
+                    }
                 }
             }
         }

@@ -1,7 +1,6 @@
 ﻿using ExeudVR;
 using UnityEngine;
 using UnityEngine.EventSystems;
-using WebXR;
 
 public class VariableJoystick : JoystickBase
 {
@@ -18,7 +17,7 @@ public class VariableJoystick : JoystickBase
 
     public void UpdateJoystickVisibility()
     {
-        bool showJS = (PlatformManager.Instance.IsMobile && WebXRManager.Instance.XRState == WebXRState.NORMAL);
+        bool showJS = (PlatformManager.Instance.IsMobile && PlatformManager.Instance.XrState == XRState.NORMAL);
         background.gameObject.SetActive(showJS);
     }
 

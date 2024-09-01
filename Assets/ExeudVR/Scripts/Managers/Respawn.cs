@@ -67,11 +67,12 @@ namespace ExeudVR
 
         private void ReplaceCharacter(GameObject specialObject)
         {
-            Camera.main.transform.position = Vector3.zero;
-            characterRoot.transform.position = Vector3.zero + Vector3.up * 1.0f;
-            characterRoot.transform.rotation = Quaternion.identity;
             characterRoot.GetComponent<Rigidbody>().velocity = Vector3.zero;
             characterRoot.GetComponent<Rigidbody>().angularVelocity = Vector3.zero;
+
+            characterRoot.transform.position = Vector3.zero + Vector3.up * 1.5f;
+            characterRoot.transform.rotation = Quaternion.identity;
+            
         }
     }
 }
