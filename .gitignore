@@ -11,7 +11,9 @@
 /[Ll]ogs/
 /[Uu]ser[Ss]ettings/
 
-/Assets/Testing
+# Lighting and Test Files
+**/[Ss]cenes/**/
+**/Testing
 
 # MemoryCaptures can get excessive in size.
 # They also could contain extremely sensitive data
