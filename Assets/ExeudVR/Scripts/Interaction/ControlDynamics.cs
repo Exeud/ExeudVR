@@ -121,7 +121,7 @@ namespace ExeudVR
         {
             if (gameObject.TryGetComponent(out ObjectInterface objectInterface))
             {
-                objectInterface.ToggleActivation(null, false);
+                objectInterface.ToggleActivation(gameObject, false);
             }
 
             ResetPose();

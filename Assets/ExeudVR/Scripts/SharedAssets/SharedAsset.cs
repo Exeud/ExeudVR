@@ -14,8 +14,8 @@ namespace ExeudVR.SharedAssets
     /// <see href="https://github.com/willguest/ExeudVR/tree/develop/Documentation/SharedAssets/SharedAsset.md"/>
     /// </summary>
     public class SharedAsset : MonoBehaviour 
-    { 
-        public bool IsBeingHandled { get; set; }
+    {
+        public bool IsBeingHandled;
 
         public string Id { get; private set; }
         public Vector3 DefaultLocation { get; private set; }

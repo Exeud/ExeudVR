@@ -64,10 +64,10 @@ namespace ExeudVR
         public Action<WebXRHandData> OnHandUpdate;
 
 
-        // flag used by ObjectInterface - used when the hand is bound to an object
-        public bool IsUsingInterface { get; set; }
+        // flag used by ObjectInterface - true when the hand is bound to an object
+        public bool IsUsingInterface { get; private set; }
 
-        // flag set by ControlDynamics - used when the controller is articulating equipment
+        // flag set by ControlDynamics - true when the controller is articulating equipment
         public bool IsControllingObject { get; set; }
 
         public GameObject HandAnchor
@@ -75,6 +75,12 @@ namespace ExeudVR
             get { return handIKAnchor; }
             set { handIKAnchor = value; }
         } 
+
+        public void SetCurrentInterface(bool state, ObjectInterface objInt)
+        {
+            IsUsingInterface = state;
+            currentInterface = objInt;
+        }
 
         public void SetGripPose(string newGripPose)
         {
@@ -88,7 +94,6 @@ namespace ExeudVR
         }
 
         // events, use as hooks for controller button functions
-        //public event BodyController.CursorFocus OnHandFocus;
         public event BodyController.ObjectTrigger OnObjectTrigger;
         public event BodyController.ObjectGrip OnObjectGrip;
 
@@ -129,10 +134,11 @@ namespace ExeudVR
 
         private Rigidbody currentNearRigidBody = null;
         private Rigidbody currentFarRigidBody = null;
+
         private ObjectInterface currentInterface;
 
-        private List<RigidDynamics> nearcontactRigidBodies = new List<RigidDynamics>();
-        private List<RigidDynamics> farcontactRigidBodies = new List<RigidDynamics>();
+        private List<Rigidbody> nearcontactRigidBodies = new List<Rigidbody>();
+        private List<Rigidbody> farcontactRigidBodies = new List<Rigidbody>();
 
         [SerializeField] private Animator anim;
         [SerializeField] private GameObject handIKAnchor;
@@ -160,11 +166,10 @@ namespace ExeudVR
         private GameObject currentButton;
 
 
-
         // Object Handling
         private bool distanceManip = false;
 
-        private string gripPose = "";
+        private string gripPose;
 
         private float actionTick = 0f;
         private float triggerEnterTick = 0f;
@@ -202,34 +207,12 @@ namespace ExeudVR
             SetHandActive(false);
         }
 
-#if UNITY_EDITOR || !UNITY_WEBGL
-
-        private void Update()
-        {
-            if (Input.GetKeyDown(KeyCode.G))
-            {
-                if (IsUsingInterface)
-                {
-                    PickupNear();
-                }
-                else
-                {
-                    PickupNear();
-                }
-            }
-            else if (Input.GetKeyDown(KeyCode.H))
-            {
-                DropNear();
-
-            }
-        }
-
-#endif
 
         void Start()
         {
             attachJoint = new FixedJoint[] { GetComponents<FixedJoint>()[0], GetComponents<FixedJoint>()[1] };
             vrGuideCam = CharacterRoot.GetComponentInChildren<Camera>();
+            SetGripPose("relax");
 
             if (!debugHand)
             {
@@ -272,6 +255,11 @@ namespace ExeudVR
             if (trigVal > trigThresUp && prevTrig <= trigThresUp)
             {
                 PickupFar();
+
+                if (IsUsingInterface)
+                {
+                    UseObjectTrigger(trigVal);
+                }
             }
             else if (trigVal < trigThresDn && prevTrig >= trigThresDn)
             {
@@ -284,19 +272,24 @@ namespace ExeudVR
                     DropFar();
                 }
             }
-            else if (trigVal > trigThresDn && currentInterface != null)
-            {
-                UseObjectTrigger(trigVal);
-            }
 
             // grip for near interaction
             float gripVal = GetAxis(AxisTypes.Grip);
             if (gripVal > gripThresUp && prevGrip <= gripThresUp)
             {
                 PickupNear();
+
+                if (IsUsingInterface)
+                {
+                    UseObjectGrip(true);
+                }
             }
             else if (gripVal < gripThresDn && prevGrip >= gripThresDn)
             {
+                if (IsUsingInterface)
+                {
+                    UseObjectGrip(false); 
+                }
                 DropNear();
             }
 
@@ -307,7 +300,6 @@ namespace ExeudVR
 
             if (IsUsingInterface)
             {
-
                 if (GetButtonDown(ButtonTypes.ButtonA))
                 {
                     AButtonEvent.Invoke(1.0f);
@@ -776,12 +768,12 @@ namespace ExeudVR
 
         private void UseObjectGrip(bool state)
         {
-            OnObjectGrip?.Invoke(hand, currentInterface.gameObject, state);
+            OnObjectGrip?.Invoke(currentInterface, state);
         }
 
         private void UseObjectTrigger(float triggerValue)
         {
-            OnObjectTrigger?.Invoke(currentInterface.gameObject, triggerValue);
+            OnObjectTrigger?.Invoke(currentInterface, triggerValue);
         }
 
 
@@ -826,13 +818,7 @@ namespace ExeudVR
                 currentNearRigidBody.isKinematic = false;
 
                 // set default grip pose
-                SetGripPose(string.IsNullOrEmpty(gripPose) ? "holdIt" : gripPose);
-            }
-
-            if (currentNearObject.TryGetComponent(out ObjectInterface objInt))
-            {
-                currentInterface = objInt;
-                UseObjectGrip(true);
+                SetGripPose(gripPose == "relax" ? "holdIt" : gripPose);
             }
 
             // determine if controlling a fixed object
@@ -892,12 +878,6 @@ namespace ExeudVR
             currentNearRigidBody.AddForce(newThrow.LinearForce, ForceMode.Impulse);
             currentNearRigidBody.AddTorque(newThrow.AngularForce, ForceMode.Impulse);
 
-            if (currentInterface != null)
-            {
-                OnObjectGrip?.Invoke(hand, currentInterface.gameObject, false);
-                currentInterface = null;
-            }
-
             if (IsControllingObject)
             {
                 currentNearRigidBody.gameObject.GetComponent<ControlDynamics>().FinishInteraction();
@@ -911,6 +891,9 @@ namespace ExeudVR
                 currentNearSharedAsset.IsBeingHandled = false;
                 currentNearSharedAsset = null;
             }
+
+            // clear grip pose
+            SetGripPose("relax");
             currentNearRigidBody = null;
         }
 
@@ -993,7 +976,7 @@ namespace ExeudVR
                         if (meshName != prevMeshName)
                         {
                             farcontactRigidBodies.Clear();
-                            farcontactRigidBodies.Add(currentObject.GetComponent<RigidDynamics>());
+                            farcontactRigidBodies.Add(currentObject.GetComponent<Rigidbody>());
                         }
 
                         // set pointer appearance for heavy objects
@@ -1057,7 +1040,7 @@ namespace ExeudVR
                 case 14:    // wearables
                 case 15:    // tools
                     {
-                        if (other.gameObject.TryGetComponent(out RigidDynamics rd))
+                        if (other.gameObject.TryGetComponent(out Rigidbody rd))
                         {
                             if (!nearcontactRigidBodies.Contains(rd))
                             {
@@ -1096,7 +1079,7 @@ namespace ExeudVR
                 case 14:    // wearables
                 case 15:    // tools
                     {
-                        if (other.gameObject.TryGetComponent(out RigidDynamics rd))
+                        if (other.gameObject.TryGetComponent(out Rigidbody rd))
                         {
                             if (nearcontactRigidBodies.Contains(rd))
                             {
@@ -1120,7 +1103,7 @@ namespace ExeudVR
             float minDistance = MaxInteractionDistance;
             float distance = 0.0f;
 
-            foreach (RigidDynamics contactBody in farcontactRigidBodies)
+            foreach (Rigidbody contactBody in farcontactRigidBodies)
             {
                 distance = (contactBody.gameObject.transform.position - transform.position).sqrMagnitude;
 
@@ -1137,7 +1120,7 @@ namespace ExeudVR
         private Rigidbody GetNearRigidBody()
         {
             Rigidbody nearestRigidBody = null;
-            foreach (RigidDynamics contactBody in nearcontactRigidBodies)
+            foreach (Rigidbody contactBody in nearcontactRigidBodies)
             {
                 nearestRigidBody = contactBody.GetComponent<Rigidbody>();
             }

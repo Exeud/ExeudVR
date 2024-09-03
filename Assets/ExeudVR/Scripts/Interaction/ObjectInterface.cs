@@ -22,9 +22,6 @@ namespace ExeudVR
     /// </summary>
     public class ObjectInterface : MonoBehaviour
     {
-        public bool IsBeingUsed;
-        public bool IsBeingHeld;
-
         [SerializeField] private Transform controlPoseLeft;
         [SerializeField] private Transform controlPoseRight;
         [SerializeField] private string gripPose;
@@ -41,9 +38,11 @@ namespace ExeudVR
         private float triggerEnterTick = 0f;
         private float triggerExitTick = 0f;
 
+        [SerializeField] private bool IsBeingUsed;
+        [SerializeField] private bool IsBeingHeld;
+
         public void ToggleActivation(GameObject manipulator, bool state)
         {
-            // 2D
             if (!manipulator || manipulator.GetComponent<CursorManager>())
             {
                 if (state)
@@ -57,7 +56,7 @@ namespace ExeudVR
                     IsBeingUsed = state;
                 }
             }
-            else // VR
+            else
             {
                 if (state)
                 {
@@ -86,7 +85,7 @@ namespace ExeudVR
             }
         }
 
-        public void SetGrip(XRController xrc, bool state)
+        public void SetGrip(bool state)
         {
             IsBeingHeld = state;
             OnGripEvent?.Invoke(state);
@@ -108,7 +107,7 @@ namespace ExeudVR
             if (IsBeingUsed && other.gameObject.GetComponent<XRController>())
             {
                 triggerExitTick = Time.realtimeSinceStartup;
-                ToggleActivation(null, false);
+                ToggleActivation(other.gameObject, false);
             }
         }
 
@@ -145,7 +144,7 @@ namespace ExeudVR
                     xrctrl.SetGripPose(gripPose);
                 }
 
-                xrctrl.IsUsingInterface = true;
+                xrctrl.SetCurrentInterface(true, this);
                 currentManipulator = manipulator.transform.Find("model").gameObject;
 
                 // disable hand colliders
@@ -178,7 +177,7 @@ namespace ExeudVR
             if (previousParent.TryGetComponent(out XRController xrc))
             {
                 xrc.SetGripPose("relax");
-                xrc.IsUsingInterface = false;
+                xrc.SetCurrentInterface(false, null);
 
                 StartCoroutine(LerpToControlPose(currentManipulator, previousParent,
                     Vector3.zero, Quaternion.identity, 0.2f));

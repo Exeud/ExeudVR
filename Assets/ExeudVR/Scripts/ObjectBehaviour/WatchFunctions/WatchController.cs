@@ -18,7 +18,7 @@ public class WatchController : MonoBehaviour
         SetMode(-1);
     }
 
-    public void ChangeMode()
+    public void ChangeMode(float trigVal)
     {
         currentMode++;
         if (currentMode > modeCanvases.Length - 1) currentMode = 0;

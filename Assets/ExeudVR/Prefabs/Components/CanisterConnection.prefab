@@ -204,8 +204,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b2b6706f2d21d6b48abb62e56e3a07bb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  IsBeingUsed: 0
-  IsBeingHeld: 0
   controlPoseLeft: {fileID: 2723482661192666952}
   controlPoseRight: {fileID: 2723482660088440463}
   gripPose: 
@@ -281,6 +279,8 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 1
+  IsBeingUsed: 0
+  IsBeingHeld: 0
 --- !u!114 &2723482661235777010
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -314,7 +314,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2723482660088440463}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: controlPoseRight
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -629,7 +629,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2723482661192666952}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: controlPoseLeft
   m_TagString: Untagged
   m_Icon: {fileID: 0}

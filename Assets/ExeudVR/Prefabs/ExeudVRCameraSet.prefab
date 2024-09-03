@@ -277,8 +277,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b2b6706f2d21d6b48abb62e56e3a07bb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  IsBeingUsed: 0
-  IsBeingHeld: 0
   controlPoseLeft: {fileID: 0}
   controlPoseRight: {fileID: 3806617505440734873}
   gripPose: holdIt
@@ -330,6 +328,8 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 1
+  IsBeingUsed: 0
+  IsBeingHeld: 0
 --- !u!1 &604471546872307593
 GameObject:
   m_ObjectHideFlags: 0

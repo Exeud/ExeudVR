@@ -41,8 +41,8 @@ namespace ExeudVR
 
         // Event delegates
         public delegate void CursorFocus(GameObject focalObject, bool state);
-        public delegate void ObjectTrigger(GameObject focalObject, float value);
-        public delegate void ObjectGrip(ControllerHand hand, GameObject focalObject, bool state);
+        public delegate void ObjectTrigger(ObjectInterface focalObject, float value);
+        public delegate void ObjectGrip(ObjectInterface focalObject, bool state);
 
         // Body layout
         [SerializeField] private GameObject headObject;
@@ -212,17 +212,17 @@ namespace ExeudVR
             }
         }
 
-        private void HandleObjectGrip(ControllerHand hand, GameObject controllable, bool state)
+        private void HandleObjectGrip(ObjectInterface objInt, bool state)
         {
-            if (controllable != null && controllable.TryGetComponent(out ObjectInterface objInt))
+            if (objInt != null)
             {
-                objInt.SetGrip(GetHandController(hand), state);
+                objInt.SetGrip(state);
             }
         }
 
-        private void HandleObjectTrigger(GameObject controllable, float value)
+        private void HandleObjectTrigger(ObjectInterface objInt, float value)
         {
-            if (controllable != null && controllable.TryGetComponent(out ObjectInterface objInt))
+            if (objInt != null)
             {
                 objInt.SetTrigger(value);
             }

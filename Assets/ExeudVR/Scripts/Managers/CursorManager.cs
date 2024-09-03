@@ -116,7 +116,7 @@ namespace ExeudVR
             {
                 if (focusedObject.TryGetComponent(out ObjectInterface objInt))
                 {
-                    OnObjectTrigger?.Invoke(objInt.gameObject, 0.75f);
+                    OnObjectTrigger?.Invoke(objInt, 0.75f);
                 }
             }
         }
