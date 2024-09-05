@@ -63,11 +63,6 @@ namespace ExeudVR
 
         private bool notifyingNetwork = false;
 
-        private void OnEnable()
-        {
-            
-        }
-
         private void OnDisable()
         {
             PlatformManager.Instance.OnStateChange -= OnXRChange;
@@ -189,7 +184,6 @@ namespace ExeudVR
             nQ.Clear();
 
 #if UNITY_EDITOR
-            // for debugging
             MapControllerEvents(true);
 #endif
 
@@ -254,7 +248,6 @@ namespace ExeudVR
         {
             notifyingNetwork = true;
             yield return new WaitForSeconds(delay);
-
             SetConnectionReady(true);
             notifyingNetwork = false;
         }
@@ -274,6 +267,7 @@ namespace ExeudVR
         {
             CurrentUserId = NetworkIO.Instance.CurrentUserId;
             IsConnectionReady = newState;
+            if (newState) SendDataFrame();
         }
 
         private void PackageEventData(AvatarHandlingData ahdFrame)
@@ -281,9 +275,9 @@ namespace ExeudVR
             SendDataFrame(AvatarEventType.Interaction, JsonConvert.SerializeObject(ahdFrame));
         }
 
-        public void EnqueuePacket(string message)
+        private void EnqueuePacket(string message)
         {
-            if (IsConnectionReady && CurrentNoPeers > 0)
+            if (IsConnectionReady)
             {
                 nQ.Enqueue(message);
                 nQc++;

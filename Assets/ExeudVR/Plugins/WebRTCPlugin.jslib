@@ -7,7 +7,7 @@ mergeInto(LibraryManager.library, {
 
 		connection.socketURL = jSocketURL;
 		
-		var publicRoomIdentifier = 'islandbowling';
+		var publicRoomIdentifier = 'exeudvr';
 		connection.publicRoomIdentifier = publicRoomIdentifier;
 		connection.socketMessageEvent = publicRoomIdentifier;
 		
@@ -35,7 +35,6 @@ mergeInto(LibraryManager.library, {
 		};
 
 		// https://www.rtcmulticonnection.org/docs/iceServers/
-		// find non-google STUNs: 
 		// https://raw.githubusercontent.com/pradt2/always-online-stun/master/valid_hosts.txt
 		
 		connection.candidates = {
@@ -219,6 +218,36 @@ mergeInto(LibraryManager.library, {
 			  params[d(match[1])] = d(match[2]);
 		  window.params = params;
 		},
+		
+	RoomCheck: function(sender) {
+		var roomManagerNode = Pointer_stringify(sender);
+		
+		if (connection == null){
+			console.log("connection is null");
+			return;
+		}
+		
+		var socket = connection.getSocket(function(socket) {
+			socket.on('disconnect', function() {
+				console.log('Socket disconnected');
+			});
+			socket.on('connect', function() {
+				console.log("Socket Connected");
+			});
+			socket.on('error', function() {
+				console.log('Socket error');
+			});
+		});
+		
+		socket.emit('get-public-rooms', connection.publicRoomIdentifier, function(listOfRooms) {
+			this.listOfRooms = listOfRooms;
+			listOfRooms.forEach(function (room) {
+				SendMessage(roomManagerNode, "RoomFound", JSON.stringify(room));
+			});
+		});
+		
+		SendMessage(roomManagerNode, "RoomCheckComplete", "");
+	},
 
     OpenRoom: function(sender, roomId, roomSize, isPublic){
 		try {
@@ -233,7 +262,6 @@ mergeInto(LibraryManager.library, {
 				if (!isRoomExist) {
 					connection.open(roomid, function (isRoomOpened, roomid, error) {
 						if (error == 'Room full') {
-							console.log("Room is full");
 							SendMessage(roomManagerNode, "RoomIsFull", JSON.stringify(roomid));
 							return;
 						}

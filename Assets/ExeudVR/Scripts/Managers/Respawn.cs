@@ -42,14 +42,21 @@ namespace ExeudVR
             Vector3 scale = obj.transform.localScale;
 
             Rigidbody rb = obj.GetComponent<Rigidbody>();
-            SharedAsset sa = obj.GetComponent<SharedAsset>();
+            obj.TryGetComponent(out SharedAsset sa);
+            obj.TryGetComponent(out RigidDynamics rd);
 
-            // put shared assets back where they started
+            // put shared and throwable assets back where they started
             if (sa)
             {
                 obj.transform.position = sa.DefaultLocation;
                 obj.transform.rotation = sa.DefaultRotation;
                 obj.transform.localScale = sa.DefaultScale;
+            }
+            else if (rd)
+            {
+                obj.transform.position = rd.DefaultLocation;
+                obj.transform.rotation = rd.DefaultRotation;
+                obj.transform.localScale = rd.DefaultScale;
             }
             else
             {

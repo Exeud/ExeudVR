@@ -127,7 +127,7 @@ ConfigurableJoint:
   m_Anchor: {x: 0, y: -0.02, z: 0}
   m_Axis: {x: 1, y: 0, z: 0}
   m_AutoConfigureConnectedAnchor: 1
-  m_ConnectedAnchor: {x: 0, y: -0.019999983, z: -0.00000000474119}
+  m_ConnectedAnchor: {x: 0, y: -0.019999998, z: -0.00000000474119}
   serializedVersion: 2
   m_SecondaryAxis: {x: 0, y: -1, z: 0}
   m_XMotion: 0
@@ -223,15 +223,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 136e44856a914ab49bb5a023aa67f219, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  movingButtonVisuals: {fileID: 3513165426481724526}
-  distanceReferenceFrame: 1
-  startPushDistance: 0
-  maxPushDistance: 0.2
-  pressDistance: 0.1
-  releaseDistanceDelta: 0.1
-  returnSpeed: 0
-  releaseOnTouchEnd: 1
-  enforceFrontPush: 1
   TouchBegin:
     m_PersistentCalls:
       m_Calls:
@@ -515,15 +506,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 136e44856a914ab49bb5a023aa67f219, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  movingButtonVisuals: {fileID: 3513165427080871920}
-  distanceReferenceFrame: 1
-  startPushDistance: 0
-  maxPushDistance: 0.2
-  pressDistance: 0.02
-  releaseDistanceDelta: 0.01
-  returnSpeed: 25
-  releaseOnTouchEnd: 1
-  enforceFrontPush: 1
   TouchBegin:
     m_PersistentCalls:
       m_Calls:
@@ -593,7 +575,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3513165427227484926}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: redButton
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -628,7 +610,7 @@ GameObject:
   - component: {fileID: 3513165427273168851}
   - component: {fileID: 3513165427273168860}
   - component: {fileID: 3513165427273168861}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: housing
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -903,8 +885,8 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3513165427918458178}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 1.118, y: -1, z: 2.5}
+  m_LocalRotation: {x: 0, y: -0.42261827, z: 0, w: 0.9063079}
+  m_LocalPosition: {x: -2.5, y: -1.4, z: 2}
   m_LocalScale: {x: 0.5, y: 1.2727036, z: 0.5}
   m_Children:
   - {fileID: 3513165427523149728}
@@ -986,7 +968,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3513165428331478199}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: greenButton
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1021,7 +1003,7 @@ GameObject:
   - component: {fileID: 3513165428547823630}
   - component: {fileID: 3513165428547823631}
   - component: {fileID: 3513165428547823624}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: housing
   m_TagString: Untagged
   m_Icon: {fileID: 0}

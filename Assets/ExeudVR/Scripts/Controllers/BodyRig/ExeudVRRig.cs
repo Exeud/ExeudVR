@@ -1,62 +1,54 @@
-﻿using ExeudVR;
-using UnityEngine;
+﻿using UnityEngine;
 
-[System.Serializable]
-public class VRMap
+namespace ExeudVR
 {
-    public Transform rigTarget;
-    public Vector3 trackingPositionOffset;
-    public Vector3 trackingRotationOffset;
-
-    public void Map(Transform vrTarget)
+    [System.Serializable]
+    public class VRMap
     {
-        rigTarget.position = vrTarget.TransformPoint(trackingPositionOffset);
-        rigTarget.rotation = vrTarget.rotation * Quaternion.Euler(trackingRotationOffset);
-    }
-}
+        public Transform rigTarget;
+        public Vector3 trackingPositionOffset;
+        public Vector3 trackingRotationOffset;
 
-public class ExeudVRRig : MonoBehaviour
-{
-    [Tooltip("Connection to ExeudVR \nLocation: ExeudVRCameraSet ➥ CharacterRoot ➥ Body")]
-    [SerializeField] private BodyController bodyController;
-
-    [SerializeField] private float yFac;
-
-    public VRMap Body;
-    public VRMap Head;
-    public VRMap LeftHand;
-    public VRMap RightHand;
-
-    private Transform headRef;
-    private Transform bodyRef;
-    private Transform leftHandRef;
-    private Transform rightHandRef;
-
-    private void Start()
-    {
-        bodyController.avatar = GetComponent<ExeudVRAvatarController>();
-
-        headRef = bodyController.GetBodyReference("head");
-        bodyRef = bodyController.GetBodyReference("body");
-        leftHandRef = bodyController.GetBodyReference("leftHand");
-        rightHandRef = bodyController.GetBodyReference("rightHand");
-    }
-
-    void Update()
-    {
-        Head.Map(headRef);
-        Body.Map(bodyRef);
-        RightHand.Map(rightHandRef);
-        LeftHand.Map(leftHandRef);
-
-        // for testing
-        if (Input.GetKeyDown(KeyCode.J)) 
+        public void Map(Transform vrTarget)
         {
-            GetComponent<ExeudVRAvatarController>().PrepareArmRig();
+            rigTarget.position = vrTarget.TransformPoint(trackingPositionOffset);
+            rigTarget.rotation = vrTarget.rotation * Quaternion.Euler(trackingRotationOffset);
         }
-        else if (Input.GetKeyDown(KeyCode.K))
+    }
+
+    public class ExeudVRRig : MonoBehaviour
+    {
+        [Tooltip("Connection to ExeudVR \nLocation: ExeudVRCameraSet ➥ CharacterRoot ➥ Body")]
+        [SerializeField] private BodyController bodyController;
+
+        [SerializeField] private float yFac;
+
+        public VRMap Body;
+        public VRMap Head;
+        public VRMap LeftHand;
+        public VRMap RightHand;
+
+        private Transform headRef;
+        private Transform bodyRef;
+        private Transform leftHandRef;
+        private Transform rightHandRef;
+
+        private void Start()
         {
-            GetComponent<ExeudVRAvatarController>().RelaxArmRig();
+            bodyController.avatar = GetComponent<ExeudVRAvatarController>();
+
+            headRef = bodyController.GetBodyReference("head");
+            bodyRef = bodyController.GetBodyReference("body");
+            leftHandRef = bodyController.GetBodyReference("leftHand");
+            rightHandRef = bodyController.GetBodyReference("rightHand");
+        }
+
+        void Update()
+        {
+            Head.Map(headRef);
+            Body.Map(bodyRef);
+            RightHand.Map(rightHandRef);
+            LeftHand.Map(leftHandRef);
         }
     }
 }

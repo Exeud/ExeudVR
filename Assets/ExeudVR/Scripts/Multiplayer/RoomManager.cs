@@ -9,7 +9,6 @@ using System;
 using System.Runtime.InteropServices;
 using UnityEngine;
 
-
 namespace ExeudVR 
 {
     /// <summary>
@@ -33,11 +32,13 @@ namespace ExeudVR
 
         private int maxPeers = 6;
         private bool publicRoom = true;
+        private string roomString = "";
+        private bool joinAnyRoom = false;
 
         private System.Random randomSeed;
 
-        private string roomString = "";
-
+        [DllImport("__Internal")]
+        private static extern void RoomCheck(string sender);
 
         [DllImport("__Internal")]
         private static extern void OpenRoom(string sender, string roomId, int roomSize, bool isPublic);
@@ -52,16 +53,49 @@ namespace ExeudVR
             fiveLW = Resources.Load("5LetterWords") as TextAsset;
         }
 
-        public void UpdateRoomName()
+
+    #region Interface
+
+        public void CheckForRooms()
         {
-            GetNewRoomName();
+            RoomCheck(gameObject.name);
         }
+
+        public void JoinAnyAvailableRoom()
+        {
+            joinAnyRoom = true;
+            CheckForRooms();
+        }
+
+        public void SetRoomSize(int newCapacity)
+        {
+            maxPeers = newCapacity;
+        }
+
+        public void SetRoomMode(bool isPublic)
+        {
+            publicRoom = isPublic;
+        }
+
+        public void CreateRoom()
+        {
+            OpenRoom(gameObject.name, roomString, maxPeers, publicRoom);
+        }
+
+        public void LeaveRoom()
+        {
+            currentRoom = string.Empty;
+            roomString = string.Empty;
+            randomSeed = new System.Random();
+        }
+
+    #endregion Interface
+
 
         private string GetNewRoomName()
         {
             string[] words = new string[2] { GetRandomWord(fiveLW.bytes, 5), GetRandomWord(fourLW.bytes, 4) };
-            roomString = string.Join(" ", words);
-            return roomString;
+            return string.Join(" ", words);
         }
 
         private void SetRoomName(string newName)
@@ -88,41 +122,39 @@ namespace ExeudVR
             return foundWord;
         }
 
-        public void SetRoomSize(int newCapacity)
+        private void OpenOrJoinRoom()
         {
-            maxPeers = newCapacity;
-        }
+            string roomCandidate = GetAvailableRoom();
 
-        public void SetRoomMode(bool isPublic)
-        {
-            publicRoom = isPublic;
-        }
-
-        public void CreateRoom()
-        {
-            OpenRoom(gameObject.name, roomString, maxPeers, publicRoom);
-        }
-
-        public void LeaveRoom()
-        {
-            currentRoom = string.Empty;
-            roomString = string.Empty;
-            randomSeed = new System.Random();
-        }
-
-        public void OpenOrJoinRoom()
-        {
-            if (string.IsNullOrEmpty(roomString))
+            if (!string.IsNullOrEmpty(roomCandidate))
             {
-                GetNewRoomName();
-                CreateRoom();
+                JoinRoom(gameObject.name, roomCandidate);
             }
             else
             {
-                if (roomString != currentRoom)
+                roomString = GetNewRoomName();
+                CreateRoom();
+            }
+        }
+
+        private string GetAvailableRoom()
+        {
+            string availableRoom = string.Empty;
+            for (int r = 0; r < rooms.Length; r++)
+            {
+                if ((int)rooms[r].Participants.Length < (int)rooms[r].MaxParticipantsAllowed)
                 {
-                    JoinRoom(gameObject.name, roomString);
+                    availableRoom = rooms[r].Sessionid;
                 }
+            }
+            return availableRoom;
+        }
+
+        private void RoomCheckComplete(string message)
+        {
+            if (joinAnyRoom)
+            {
+                OpenOrJoinRoom();
             }
         }
 
@@ -146,10 +178,10 @@ namespace ExeudVR
 
         private void RoomIsFull(string roomId)
         {
-            // todo
+            Debug.Log("Room is full");
         }
 
-        private void ReceiveRoomInfo(string message)
+        private void RoomFound(string message)
         {
             RoomObject newRoom = JsonConvert.DeserializeObject<RoomObject>(message);
             bool roomExists = false;
@@ -171,12 +203,6 @@ namespace ExeudVR
                     room.Participants = newRoom.Participants;
                     room.MaxParticipantsAllowed = newRoom.MaxParticipantsAllowed;
                     room.Session = newRoom.Session;
-
-                    string roomDetails = room.Sessionid + " \n" +
-                        "Visitors: " + room.Participants.Length + ", \n" +
-                        "Capacity: " + room.MaxParticipantsAllowed.ToString();
-
-                    Debug.Log(" -- Room Found --\n" + roomDetails);
                 }
             }
 
@@ -185,7 +211,6 @@ namespace ExeudVR
             {
                 Array.Resize(ref rooms, rooms.Length + 1);
                 rooms[rooms.Length - 1] = newRoom;
-                roomString = newRoom.Sessionid;
             }
         }
 

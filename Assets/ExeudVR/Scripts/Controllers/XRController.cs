@@ -178,8 +178,9 @@ namespace ExeudVR
         private float jumpTick;
         private float seaLevel = -4.5f;
 
-        private Camera vrGuideCam;
-
+        private Camera _camera;
+        private Vector3 defaultPositionOffset;
+        private Quaternion defaultRotationOffset;
 
         #endregion Private Variables
 
@@ -210,8 +211,11 @@ namespace ExeudVR
 
         void Start()
         {
+            defaultPositionOffset = transform.localPosition;
+            defaultRotationOffset = transform.localRotation;
+
             attachJoint = new FixedJoint[] { GetComponents<FixedJoint>()[0], GetComponents<FixedJoint>()[1] };
-            vrGuideCam = CharacterRoot.GetComponentInChildren<Camera>();
+            _camera = CharacterRoot.GetComponentInChildren<Camera>();
             SetGripPose("relax");
 
             if (!debugHand)
@@ -224,106 +228,111 @@ namespace ExeudVR
 
         void FixedUpdate()
         {
-            // only do this in a webxr session
-            if (xrState != WebXRState.VR && debugHand == false) { return; }
-
-            // left stick controls movement
-            if (hand == ControllerHand.LEFT)
+            if (xrState == WebXRState.NORMAL && !debugHand)
             {
-                if (Math.Abs(thumbstickX) > thAT || Math.Abs(thumbstickY) > thAT)
-                {
-                    MoveVehicleWithJoystick(thumbstickX, thumbstickY, 2.0f);
-                }
+                transform.localPosition = ((_camera.transform.right * defaultPositionOffset.x) + (CharacterRoot.transform.up * defaultPositionOffset.y));
+                transform.rotation = Quaternion.Euler(new Vector3(0f, _camera.transform.transform.eulerAngles.y, 0f)) * defaultRotationOffset;
             }
-            // right stick turns in 60 degree steps and forwards-backwards
-            else if (hand == ControllerHand.RIGHT)
+            else
             {
-                if (Mathf.Abs(thumbstickX) > rightThumbstickThreshold && prevRightThX <= rightThumbstickThreshold)
+                // left stick controls movement
+                if (hand == ControllerHand.LEFT)
                 {
-                    RotateVehicleWithJoystick(thumbstickX);
+                    if (Math.Abs(thumbstickX) > thAT || Math.Abs(thumbstickY) > thAT)
+                    {
+                        MoveVehicleWithJoystick(thumbstickX, thumbstickY, 2.0f);
+                    }
                 }
-                prevRightThX = Mathf.Abs(thumbstickX);
-
-                if (Math.Abs(thumbstickY) > thAT)
+                // right stick turns in 60 degree steps and forwards-backwards
+                else if (hand == ControllerHand.RIGHT)
                 {
-                    MoveVehicleWithJoystick(0.0f, thumbstickY, 2.0f);
-                }
-            }
+                    if (Mathf.Abs(thumbstickX) > rightThumbstickThreshold && prevRightThX <= rightThumbstickThreshold)
+                    {
+                        RotateVehicleWithJoystick(thumbstickX);
+                    }
+                    prevRightThX = Mathf.Abs(thumbstickX);
 
-            // trigger for distance interaction
-            float trigVal = GetAxis(AxisTypes.Trigger);
-            if (trigVal > trigThresUp && prevTrig <= trigThresUp)
-            {
-                PickupFar();
+                    if (Math.Abs(thumbstickY) > thAT)
+                    {
+                        MoveVehicleWithJoystick(0.0f, thumbstickY, 2.0f);
+                    }
+                }
+
+                // trigger for distance interaction
+                float trigVal = GetAxis(AxisTypes.Trigger);
+                if (trigVal > trigThresUp && prevTrig <= trigThresUp)
+                {
+                    PickupFar();
+
+                    if (IsUsingInterface)
+                    {
+                        UseObjectTrigger(trigVal);
+                    }
+                }
+                else if (trigVal < trigThresDn && prevTrig >= trigThresDn)
+                {
+                    if (distanceManip)
+                    {
+                        DropFar();
+                    }
+                    else if (currentButton != null)
+                    {
+                        DropFar();
+                    }
+                }
+
+                // grip for near interaction
+                float gripVal = GetAxis(AxisTypes.Grip);
+                if (gripVal > gripThresUp && prevGrip <= gripThresUp)
+                {
+                    PickupNear();
+
+                    if (IsUsingInterface)
+                    {
+                        UseObjectGrip(true);
+                    }
+                }
+                else if (gripVal < gripThresDn && prevGrip >= gripThresDn)
+                {
+                    if (IsUsingInterface)
+                    {
+                        UseObjectGrip(false);
+                    }
+                    DropNear();
+                }
+
+                if (thumbstick == 1)
+                {
+                    JumpSwim();
+                }
 
                 if (IsUsingInterface)
                 {
-                    UseObjectTrigger(trigVal);
+                    if (GetButtonDown(ButtonTypes.ButtonA))
+                    {
+                        AButtonEvent.Invoke(1.0f);
+                    }
+                    else if (GetButtonUp(ButtonTypes.ButtonA))
+                    {
+                        AButtonEvent.Invoke(0.0f);
+                    }
+
+                    if (GetButtonDown(ButtonTypes.ButtonB))
+                    {
+                        BButtonEvent.Invoke(1.0f);
+                    }
+                    else if (GetButtonUp(ButtonTypes.ButtonB))
+                    {
+                        BButtonEvent.Invoke(0.0f);
+                    }
                 }
+
+                prevTrig = trigVal;
+                prevGrip = gripVal;
+
+                // handle far interaction
+                SetActiveFarMesh();
             }
-            else if (trigVal < trigThresDn && prevTrig >= trigThresDn)
-            {
-                if (distanceManip)
-                {
-                    DropFar();
-                }
-                else if (currentButton != null)
-                {
-                    DropFar();
-                }
-            }
-
-            // grip for near interaction
-            float gripVal = GetAxis(AxisTypes.Grip);
-            if (gripVal > gripThresUp && prevGrip <= gripThresUp)
-            {
-                PickupNear();
-
-                if (IsUsingInterface)
-                {
-                    UseObjectGrip(true);
-                }
-            }
-            else if (gripVal < gripThresDn && prevGrip >= gripThresDn)
-            {
-                if (IsUsingInterface)
-                {
-                    UseObjectGrip(false); 
-                }
-                DropNear();
-            }
-
-            if (thumbstick == 1)
-            {
-                JumpSwim();
-            }
-
-            if (IsUsingInterface)
-            {
-                if (GetButtonDown(ButtonTypes.ButtonA))
-                {
-                    AButtonEvent.Invoke(1.0f);
-                }
-                else if (GetButtonUp(ButtonTypes.ButtonA))
-                {
-                    AButtonEvent.Invoke(0.0f);
-                }
-
-                if (GetButtonDown(ButtonTypes.ButtonB))
-                {
-                    BButtonEvent.Invoke(1.0f);
-                }
-                else if (GetButtonUp(ButtonTypes.ButtonB))
-                {
-                    BButtonEvent.Invoke(0.0f);
-                }
-            }
-
-            prevTrig = trigVal;
-            prevGrip = gripVal;
-
-            // handle far interaction
-            SetActiveFarMesh();
         }
 
 #if UNITY_EDITOR || !UNITY_WEBGL
@@ -576,7 +585,7 @@ namespace ExeudVR
         {
             float x = xax * Time.deltaTime;
             float z = yax * Time.deltaTime;
-            Camera referenceCam = vrGuideCam;
+            Camera referenceCam = _camera;
 
             // get camera-aligned directions
             Vector3 worldForward = CharacterRoot.transform.InverseTransformDirection(referenceCam.transform.forward);
@@ -599,11 +608,11 @@ namespace ExeudVR
 
             if (value > 0)
             {
-                CharacterRoot.transform.RotateAround(vrGuideCam.transform.position, Vector3.up, 60);
+                CharacterRoot.transform.RotateAround(_camera.transform.position, Vector3.up, 60);
             }
             else
             {
-                CharacterRoot.transform.RotateAround(vrGuideCam.transform.position, Vector3.up, -60);
+                CharacterRoot.transform.RotateAround(_camera.transform.position, Vector3.up, -60);
             }
         }
 
@@ -1022,7 +1031,7 @@ namespace ExeudVR
             if ((Time.time - triggerEnterTick) < 0.1f) return;
             switch (other.gameObject.layer)
             {
-                case 12:  // UI
+                case 12:  // buttons
                     {
                         touchingButton = true;
                         currentButton = other.gameObject;

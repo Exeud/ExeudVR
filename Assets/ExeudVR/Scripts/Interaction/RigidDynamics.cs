@@ -32,6 +32,10 @@ namespace ExeudVR
         [Tooltip("Target for volume estimation.")]
         [SerializeField] private MeshFilter targetMesh;
 
+        public Vector3 DefaultLocation { get; private set; }
+        public Quaternion DefaultRotation { get; private set; }
+        public Vector3 DefaultScale { get; private set; }
+
         public float Mass
         {
             get { return GetNewMass(); }
@@ -107,6 +111,10 @@ namespace ExeudVR
 
         private void ResetComponent()
         {
+            DefaultLocation = transform.position;
+            DefaultRotation = transform.rotation;
+            DefaultScale = transform.lossyScale;
+
             currVelEntry = 0;
             currRotEntry = 0;
 

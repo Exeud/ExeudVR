@@ -228,7 +228,7 @@ GameObject:
   - component: {fileID: 604471545865414541}
   - component: {fileID: 604471545865414536}
   m_Layer: 14
-  m_Name: Face
+  m_Name: WatchFace
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -317,9 +317,9 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 604471546872307607}
-        m_TargetAssemblyTypeName: WatchController, ICVR
+        m_TargetAssemblyTypeName: WatchController, ExeudVR
         m_MethodName: ChangeMode
-        m_Mode: 1
+        m_Mode: 0
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
@@ -1685,15 +1685,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 136e44856a914ab49bb5a023aa67f219, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  movingButtonVisuals: {fileID: 0}
-  distanceReferenceFrame: 1
-  startPushDistance: 0
-  maxPushDistance: 0.2
-  pressDistance: 0.02
-  releaseDistanceDelta: 0.01
-  returnSpeed: 25
-  releaseOnTouchEnd: 1
-  enforceFrontPush: 1
   TouchBegin:
     m_PersistentCalls:
       m_Calls: []
@@ -1787,15 +1778,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 136e44856a914ab49bb5a023aa67f219, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  movingButtonVisuals: {fileID: 0}
-  distanceReferenceFrame: 1
-  startPushDistance: 0
-  maxPushDistance: 0.2
-  pressDistance: 0.02
-  releaseDistanceDelta: 0.01
-  returnSpeed: 25
-  releaseOnTouchEnd: 1
-  enforceFrontPush: 1
   TouchBegin:
     m_PersistentCalls:
       m_Calls: []
@@ -2309,7 +2291,7 @@ CapsuleCollider:
   m_GameObject: {fileID: 3255817194858109449}
   m_Material: {fileID: 0}
   m_IsTrigger: 0
-  m_Enabled: 0
+  m_Enabled: 1
   m_Radius: 0.03
   m_Height: 0.1
   m_Direction: 0
@@ -3588,15 +3570,15 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4597687827197620466}
-  m_LocalRotation: {x: 0.49572244, y: -0.11303904, z: 0.06526312, w: 0.8586165}
-  m_LocalPosition: {x: 0.22, y: -0.85, z: -0.1}
+  m_LocalRotation: {x: 0.25660488, y: -0.12607868, z: 0.033782687, w: 0.9576622}
+  m_LocalPosition: {x: 0.22, y: -0.85, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 3913396912512973428}
   - {fileID: 3860785877552895420}
   m_Father: {fileID: 4310676798212308649}
   m_RootOrder: 3
-  m_LocalEulerAnglesHint: {x: 60, y: -15, z: 0}
+  m_LocalEulerAnglesHint: {x: 30, y: -15, z: 0}
 --- !u!54 &6108542940720937660
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -4367,7 +4349,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5863292637655092749}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0.01, y: 0.01, z: -0.15}
+  m_LocalPosition: {x: -0.01, y: 0.01, z: -0.15}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 3913396912512973428}
@@ -4715,8 +4697,8 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6526199853308282846}
-  m_LocalRotation: {x: -0.488148, y: -0.1874421, z: 0.10821974, w: -0.84549713}
-  m_LocalPosition: {x: -0.22, y: -0.85, z: -0.1}
+  m_LocalRotation: {x: 0.25660488, y: 0.12607859, z: -0.03378266, w: 0.9576622}
+  m_LocalPosition: {x: -0.22, y: -0.85, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 3287965934860830535}
@@ -4724,7 +4706,7 @@ Transform:
   - {fileID: 604471546872307598}
   m_Father: {fileID: 4310676798212308649}
   m_RootOrder: 2
-  m_LocalEulerAnglesHint: {x: 60, y: 385, z: 0}
+  m_LocalEulerAnglesHint: {x: 30, y: 15, z: 0}
 --- !u!54 &2599076556097693943
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -5281,7 +5263,7 @@ GameObject:
   - component: {fileID: 6400770545648451833}
   - component: {fileID: 9165086581537125427}
   m_Layer: 14
-  m_Name: strap
+  m_Name: Strap
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

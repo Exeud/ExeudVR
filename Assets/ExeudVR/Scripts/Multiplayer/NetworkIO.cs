@@ -125,7 +125,7 @@ namespace ExeudVR
 
         public void OpenJoin()
         {
-            roomManager.OpenOrJoinRoom();
+            roomManager.JoinAnyAvailableRoom();
         }
 
         public void CloseRTC()
@@ -201,7 +201,8 @@ namespace ExeudVR
             WaitingForOthers = true;
             networkUpdateReady = true;
 
-            Debug.Log("WebRTC connection ready");
+            Debug.Log("WebRTC connection ready.");
+            roomManager.CheckForRooms();
         }
 
 
@@ -270,8 +271,9 @@ namespace ExeudVR
             ConnectionData cdata = JsonConvert.DeserializeObject<ConnectionData>(message);
             if (!connectedUsers.Contains(cdata.Userid) && !previousOwnIds.Contains(cdata.Userid))
             {
-                Debug.Log("Someone showed up on the network: " + cdata.Userid);
+                Debug.Log(cdata.Userid + " showed up on the network");
                 connectedUsers.Add(cdata.Userid);
+
             }
             else
             {

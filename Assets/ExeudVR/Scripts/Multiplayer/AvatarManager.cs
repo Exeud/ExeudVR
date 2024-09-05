@@ -6,6 +6,7 @@
 
 using Newtonsoft.Json;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace ExeudVR
@@ -62,7 +63,7 @@ namespace ExeudVR
 
         private void OnDestroy()
         {
-            foreach (string user in avatarControllers.Keys)
+            foreach (string user in avatarControllers.Keys.ToList())
             {
                 RemovePlayerAvatar(user);
             }
@@ -74,7 +75,7 @@ namespace ExeudVR
         public void ResetScene()
         {
             //remove all entries from lists
-            foreach (string av in avatarControllers.Keys)
+            foreach (string av in avatarControllers.Keys.ToList())
             {
                 RemovePlayerAvatar(av);
             }
@@ -106,7 +107,7 @@ namespace ExeudVR
             }
         }
 
-        public void CreateNewPlayerAvatar(NodeDataFrame nodeFrame)
+        private void CreateNewPlayerAvatar(NodeDataFrame nodeFrame)
         {
             GameObject newPlayer = Instantiate(avatarTemplate, nodeFrame.HeadPosition, nodeFrame.HeadRotation, this.transform);
             newPlayer.name = nodeFrame.Id;
@@ -117,7 +118,6 @@ namespace ExeudVR
                 avatarControllers.Add(nodeFrame.Id, avCon);
                 avCon.Initialise();
             }
-
             OnDictionaryChanged?.Invoke(avatarControllers.Count);
         }
 
@@ -127,13 +127,12 @@ namespace ExeudVR
             {
                 aC.EndSession();
                 avatarControllers.Remove(userId);
-                Destroy(aC);
+                Destroy(aC.gameObject);
 
                 if (avatarControllers.Count == 0)
                 {
                     AudioChannelOpen = false;
                 }
-
                 OnDictionaryChanged?.Invoke(avatarControllers.Count);
             }
         }
