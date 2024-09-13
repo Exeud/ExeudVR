@@ -258,7 +258,7 @@ namespace ExeudVR.Settings
         {
             GUILayout.BeginHorizontal();
 
-            string shortName = filename.Substring(5, filename.Length - 5);
+            string shortName = filename.Substring(8, filename.Length - 8);
             presetStates[i] = presets[i].Value;
 
             GUILayout.Label(shortName);
