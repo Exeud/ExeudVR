@@ -11,10 +11,10 @@ namespace ExeudVR.SharedAssets
     /// <summary>
     /// This component makes the GameObject indexable in the shared asset register. 
     /// During interaction, the presence of this component triggers p2p data transfer.
-    /// <see href="https://github.com/willguest/ExeudVR/tree/develop/Documentation/SharedAssets/SharedAsset.md"/>
+    /// <see href="https://github.com/Exeud/ExeudVR/tree/develop/Documentation/SharedAssets/SharedAsset.md"/>
     /// </summary>
     public class SharedAsset : MonoBehaviour 
-    { 
+    {
         public bool IsBeingHandled { get; set; }
 
         public string Id { get; private set; }
@@ -22,38 +22,37 @@ namespace ExeudVR.SharedAssets
         public Quaternion DefaultRotation { get; private set; }
         public Vector3 DefaultScale { get; private set; }
 
-        private bool isNetworkAvailable = false;
         private SharedAssetManager _manager;
 
         private void Awake()
         {
-            DefaultLocation = transform.position;
-            DefaultRotation = transform.rotation;
-            DefaultScale = transform.lossyScale;
-
-            if (SharedAssetManager.Instance)
-            {
-                isNetworkAvailable = true;
-            }
+            SetTransformDefaults();
         }
 
         private void Start()
         {
-            if (isNetworkAvailable)
-            {
-                _manager = SharedAssetManager.Instance;
-                Id = GetGameObjectPath(gameObject);
-                _manager.IncludeAssetInRegister(Id, gameObject);
-            }
+            if (SharedAssetManager.Instance)
+			{
+				_manager = SharedAssetManager.Instance;
+				Id = GetGameObjectPath(gameObject);
+				_manager.IncludeAssetInRegister(Id, gameObject);
+			}
         }
 
         private void OnDestroy()
         {
-            if (isNetworkAvailable)
+            if (SharedAssetManager.Instance)
             {
                 bool removeResult = _manager.RemoveAssetFromRegister(Id);
             }
         }
+		
+		private void SetTransformDefaults()
+		{
+			DefaultLocation = transform.position;
+			DefaultRotation = transform.rotation;
+			DefaultScale = transform.lossyScale;
+		}
 
         private static string GetGameObjectPath(GameObject obj)
         {

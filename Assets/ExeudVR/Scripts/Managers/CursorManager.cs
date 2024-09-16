@@ -1,5 +1,4 @@
 using UnityEngine;
-using WebXR;
 
 namespace ExeudVR
 {
@@ -11,29 +10,44 @@ namespace ExeudVR
 
         public bool isGameMode { get; private set; }
 
+        // Event handling   
+        public event BodyController.CursorFocus OnObjectFocus;
+        public event BodyController.ObjectTrigger OnObjectTrigger;
+
         // Inspector Objects
+        [Tooltip("Visualise pointers in the Editor?")]
+        [SerializeField] private bool DebugCursorSelection;
+
+        [Tooltip("Default cursor for non-interactive elements")]
         [SerializeField] private Texture2D cursorForScene;
+
+        [Tooltip("Cursor for things that can be thrown around")]
         [SerializeField] private Texture2D cursorForObjects;
+
+        [Tooltip("Cursor for fixed interactables")]
         [SerializeField] private Texture2D cursorForControls;
 
+        [Tooltip("Crosshair reference. See sister GameObject")]
         [SerializeField] private CentreCrosshair crosshair;
-
-        [SerializeField] private bool DebugMouseInteraction;
 
 
         // Private Variables
         private Vector2 hotspot = new Vector2(10, 5);
         private readonly CursorMode cMode = CursorMode.ForceSoftware;
-        private int pLayer = 0;
 
-        
         private GameObject focusedObject;
-        private WebXRState xrState;
+        private XRState xrState;
+
+        private int GetLaterInt(string layerName)
+        {
+            return LayerMask.NameToLayer(layerName);
+        }
 
         private void Awake()
         {
             _instance = this;
-            xrState = WebXRState.NORMAL;
+            xrState = XRState.NORMAL;
+
         }
 
         private void Start()
@@ -51,9 +65,9 @@ namespace ExeudVR
 
         void OnGUI()
         {
-            if (xrState != WebXRState.NORMAL) { return; }
+            if (xrState != XRState.NORMAL) { return; }
 
-            if (!Application.isEditor || DebugMouseInteraction)
+            if (!Application.isEditor || DebugCursorSelection)
             {
                 SetCursorImage();
             }
@@ -73,11 +87,44 @@ namespace ExeudVR
             isGameMode = visibility;
             int isActive = (isGameMode ? 1 : 0) * 255;
             crosshair.SetColor(CrosshairColorChannel.ALPHA, isActive, true);
+            crosshair.SetActive(visibility);
         }
 
-        public void SetFocusedObject(GameObject inFocus)
+        public void HandleCursorFocus(GameObject inFocus)
         {
-            focusedObject = inFocus;
+            if (inFocus == null)
+            {
+                focusedObject = inFocus;
+                return;
+            }
+            
+            if (inFocus != focusedObject)
+            {
+                // lose old focus
+                if (focusedObject && focusedObject.TryGetComponent(out ObjectInterface oiOld))
+                {
+                    oiOld.ToggleActivation(gameObject, false);
+                }
+
+                // get new focus
+                if (inFocus.TryGetComponent(out ObjectInterface oiNew))
+                {
+                    oiNew.ToggleActivation(gameObject, true);
+                }
+
+                focusedObject = inFocus;
+            }
+        }
+
+        public void DoubleClick()
+        {
+            if (focusedObject != null)
+            {
+                if (focusedObject.TryGetComponent(out ObjectInterface objInt))
+                {
+                    OnObjectTrigger?.Invoke(objInt, 0.75f);
+                }
+            }
         }
 
         public void SetCursorImage()
@@ -92,11 +139,11 @@ namespace ExeudVR
             }
         }
 
-        public void SetCursorParameters(WebXRState state)
+        public void SetCursorParameters(XRState state)
         {
             xrState = state;
 
-            if (xrState != WebXRState.NORMAL)
+            if (state != XRState.NORMAL)
             {
                 Cursor.visible = false;
             }
@@ -121,15 +168,9 @@ namespace ExeudVR
 
         private void SetCursorImageFromLayer(int objectLayer)
         {
-            if (objectLayer == pLayer)
-            {
-                return;
-            }
+            string thisLayer = LayerMask.LayerToName(objectLayer);
 
-            pLayer = objectLayer;
-
-            // ui and buttons
-            if (objectLayer == 12)
+            if (string.Equals(thisLayer, "Affordance") || string.Equals(thisLayer, "Buttons"))
             {
                 Cursor.SetCursor(cursorForControls, hotspot, cMode);
                 if (isGameMode)
@@ -139,8 +180,7 @@ namespace ExeudVR
                     crosshair.SetGap(8, true);
                 }
             }
-            // interactables (object and tools)
-            else if (objectLayer == 10 || objectLayer == 15)
+            else if (string.Equals(thisLayer, "Objects") || string.Equals(thisLayer, "Tools"))
             {
                 Cursor.SetCursor(cursorForObjects, hotspot, cMode);
                 if (isGameMode)
@@ -150,10 +190,9 @@ namespace ExeudVR
                     crosshair.SetGap(18, true);
                 }
             }
-            // controllables (furniture and wearables)
-            else if (objectLayer == 9 || objectLayer == 14)
+            else if (string.Equals(thisLayer, "Furniture") || string.Equals(thisLayer, "Scene"))
             {
-                Cursor.SetCursor(cursorForControls, hotspot, cMode);
+                Cursor.SetCursor(cursorForScene, hotspot, cMode);
                 if (isGameMode)
                 {   // narrow, thicker crosshair
                     crosshair.SetSize(6, true);
@@ -161,9 +200,9 @@ namespace ExeudVR
                     crosshair.SetGap(6, true);
                 }
             }
-            // default (scene) cursor
             else
             {
+                // defaults to `cursorForScene`
                 SetDefaultCursor();
             }
         }

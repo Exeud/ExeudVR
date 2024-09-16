@@ -4,7 +4,6 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-using System.Collections.Generic;
 using UnityEngine;
 using ExeudVR.SharedAssets;
 
@@ -12,17 +11,17 @@ namespace ExeudVR
 {
     /// <summary>
     /// Replaces object when they fall out of the scene and hit the 'Planes of Destruction'. 
-    /// <see href="https://github.com/willguest/ExeudVR/tree/develop/Documentation/Managers/Respawn.md"/>
+    /// <see href="https://github.com/Exeud/ExeudVR/tree/develop/Documentation/Managers/Respawn.md"/>
     /// </summary>
     public class Respawn : MonoBehaviour
     {
         [SerializeField] private Transform DefaultRespawnPose;
         [SerializeField] private GameObject characterRoot;
-        [SerializeField] private List<GameObject> characterColliders;
+        private Vector3 charStartPos;
 
-        void Start()
+        private void Awake()
         {
-
+            charStartPos = characterRoot.transform.localPosition;
         }
 
         void OnTriggerEnter(Collider col)
@@ -37,7 +36,7 @@ namespace ExeudVR
             {
                 ReplaceCharacter(respawnObject);
             }
-            else if (respawnObject.layer != 15) // skip tools for now, because of hand glitch
+            else if (!respawnObject.name.ToLower().Contains("hand")) // skip hands
             {
                 ReplaceObject(respawnObject);
             }
@@ -49,14 +48,21 @@ namespace ExeudVR
             Vector3 scale = obj.transform.localScale;
 
             Rigidbody rb = obj.GetComponent<Rigidbody>();
-            SharedAsset sa = obj.GetComponent<SharedAsset>();
+            obj.TryGetComponent(out SharedAsset sa);
+            obj.TryGetComponent(out RigidDynamics rd);
 
-            // put shared assets back where they started
+            // put shared and throwable assets back where they started
             if (sa)
             {
                 obj.transform.position = sa.DefaultLocation;
                 obj.transform.rotation = sa.DefaultRotation;
                 obj.transform.localScale = sa.DefaultScale;
+            }
+            else if (rd)
+            {
+                obj.transform.position = rd.DefaultLocation;
+                obj.transform.rotation = rd.DefaultRotation;
+                obj.transform.localScale = rd.DefaultScale;
             }
             else
             {
@@ -74,10 +80,12 @@ namespace ExeudVR
 
         private void ReplaceCharacter(GameObject specialObject)
         {
-            characterRoot.transform.position = Vector3.zero + Vector3.up * 1.0f;
-            characterRoot.transform.rotation = Quaternion.identity;
             characterRoot.GetComponent<Rigidbody>().velocity = Vector3.zero;
             characterRoot.GetComponent<Rigidbody>().angularVelocity = Vector3.zero;
+
+            characterRoot.transform.position = characterRoot.transform.parent.position + charStartPos;
+            characterRoot.transform.rotation = Quaternion.identity;
+            
         }
     }
 }

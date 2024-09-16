@@ -5,6 +5,7 @@
  */
 
 using System.Collections;
+using System.ComponentModel.Design;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -18,13 +19,10 @@ namespace ExeudVR
 
     /// <summary>
     /// A simplified version of 'Grabbable', for single handed interaction only. For more information 
-    /// <see href="https://github.com/willguest/ExeudVR/tree/develop/Documentation/Interaction/ObjectInterface.md"/>
+    /// <see href="https://github.com/Exeud/ExeudVR/tree/develop/Documentation/Interaction/ObjectInterface.md"/>
     /// </summary>
     public class ObjectInterface : MonoBehaviour
     {
-        public bool IsBeingUsed;
-        public bool IsBeingHeld;
-
         [SerializeField] private Transform controlPoseLeft;
         [SerializeField] private Transform controlPoseRight;
         [SerializeField] private string gripPose;
@@ -37,31 +35,46 @@ namespace ExeudVR
 
         private Transform previousParent;
         private GameObject currentManipulator;
+        private ControllerHand activeHand;
 
         private float triggerEnterTick = 0f;
         private float triggerExitTick = 0f;
 
+        private bool IsBeingUsed;
+        private bool IsBeingHeld;
+
         public void ToggleActivation(GameObject manipulator, bool state)
         {
-            if (manipulator == gameObject)
+            if (!manipulator || manipulator.GetComponent<CursorManager>())
             {
-                manipulator = null;
-            }
-
-            if (state)
-            {
-                if (ReceiveControl(manipulator))
+                if (state)
                 {
                     IsBeingUsed = state;
                     OnGetFocusEvent?.Invoke();
                 }
-            }
-            else
-            {
-                if (LoseControl())
+                else
                 {
                     OnLoseFocusEvent?.Invoke();
                     IsBeingUsed = state;
+                }
+            }
+            else
+            {
+                if (state)
+                {
+                    if (ReceiveControl(manipulator))
+                    {
+                        IsBeingUsed = state;
+                        OnGetFocusEvent?.Invoke();
+                    }
+                }
+                else
+                {
+                    if (LoseControl())
+                    {
+                        OnLoseFocusEvent?.Invoke();
+                        IsBeingUsed = state;
+                    }
                 }
             }
         }
@@ -74,7 +87,7 @@ namespace ExeudVR
             }
         }
 
-        public void SetGrip(XRController xrc, bool state)
+        public void SetGrip(bool state)
         {
             IsBeingHeld = state;
             OnGripEvent?.Invoke(state);
@@ -96,7 +109,7 @@ namespace ExeudVR
             if (IsBeingUsed && other.gameObject.GetComponent<XRController>())
             {
                 triggerExitTick = Time.realtimeSinceStartup;
-                ToggleActivation(null, false);
+                ToggleActivation(other.gameObject, false);
             }
         }
 
@@ -111,12 +124,14 @@ namespace ExeudVR
                 if (xrctrl.IsUsingInterface) return false;
                 if (xrctrl.IsControllingObject) return false;
 
+                activeHand = xrctrl.SetCurrentInterface(true, this);
+
                 Transform activeControlPose;
-                if (xrctrl.hand == ControllerHand.LEFT && controlPoseLeft != null)
+                if (activeHand == ControllerHand.LEFT && controlPoseLeft != null)
                 {
                     activeControlPose = controlPoseLeft;
                 }
-                else if (xrctrl.hand == ControllerHand.RIGHT && controlPoseRight != null)
+                else if (activeHand == ControllerHand.RIGHT && controlPoseRight != null)
                 {
                     activeControlPose = controlPoseRight;
                 }
@@ -133,8 +148,8 @@ namespace ExeudVR
                     xrctrl.SetGripPose(gripPose);
                 }
 
-                xrctrl.IsUsingInterface = true;
-                currentManipulator = manipulator.transform.Find("model").gameObject;
+                
+                currentManipulator = xrctrl.HandModel;
 
                 // disable hand colliders
                 foreach (CapsuleCollider cc in currentManipulator.GetComponentsInChildren<CapsuleCollider>())
@@ -166,7 +181,7 @@ namespace ExeudVR
             if (previousParent.TryGetComponent(out XRController xrc))
             {
                 xrc.SetGripPose("relax");
-                xrc.IsUsingInterface = false;
+                activeHand = xrc.SetCurrentInterface(false, null);
 
                 StartCoroutine(LerpToControlPose(currentManipulator, previousParent,
                     Vector3.zero, Quaternion.identity, 0.2f));

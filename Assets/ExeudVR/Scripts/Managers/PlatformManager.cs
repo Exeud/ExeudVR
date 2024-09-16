@@ -11,8 +11,19 @@ using WebXR;
 namespace ExeudVR
 {
     /// <summary>
+    /// Cast from WebXRManager to speed up internal state checks,
+    /// so order of `VR, AR, NORMAL` must be preserved.
+    /// </summary>
+    public enum XRState
+    {
+        VR,
+        AR,
+        NORMAL
+    }
+
+    /// <summary>
     /// This class looks after mode detection and switching, interfacing with the WebXRManager. 
-    /// <see href="https://github.com/willguest/ExeudVR/tree/develop/Documentation/Managers/PlatformManager.md"/>
+    /// <see href="https://github.com/Exeud/ExeudVR/tree/develop/Documentation/Managers/PlatformManager.md"/>
     /// </summary>
     public class PlatformManager : MonoBehaviour
     {
@@ -21,6 +32,9 @@ namespace ExeudVR
 
         [DllImport("__Internal")]
         private static extern void DetectFormFactor(string objectName);
+
+        public delegate void XRStateChange (XRState state);
+        public event XRStateChange OnStateChange;
 
 
         public bool IsMobile
@@ -31,11 +45,13 @@ namespace ExeudVR
 
         public bool IsVRSupported { get; private set; }
 
-        public WebXRState XrState { get; private set; }
+        public XRState XrState { get; private set; }
 
         private bool discoveredVR = false;
         private bool isMobile;
         private string formFactor = "";
+
+        
 
         public void StartVR()
         {
@@ -85,6 +101,7 @@ namespace ExeudVR
             WebXRManager.OnXRCapabilitiesUpdate -= CheckCapabilties;
         }
 
+        
         private void CheckCapabilties(WebXRDisplayCapabilities capabilities)
         {
             IsVRSupported = capabilities.canPresentVR;
@@ -92,7 +109,8 @@ namespace ExeudVR
 
         private void OnXRChange(WebXRState state, int viewsCount, Rect leftRect, Rect rightRect)
         {
-            XrState = state;
+            XrState = (XRState)state;
+            OnStateChange(XrState);
             //DetectFormFactor(gameObject.name);
         }
 

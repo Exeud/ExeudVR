@@ -78,7 +78,7 @@ Preset:
     objectReference: {fileID: 0}
   - target: {fileID: 0}
     propertyPath: layers.Array.data[14]
-    value: Wearables
+    value: Affordance
     objectReference: {fileID: 0}
   - target: {fileID: 0}
     propertyPath: layers.Array.data[15]

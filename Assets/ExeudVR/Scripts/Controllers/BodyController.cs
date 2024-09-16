@@ -9,13 +9,14 @@ using System.Runtime.InteropServices;
 using Newtonsoft.Json;
 using ExeudVR.SharedAssets;
 using UnityEngine;
-using WebXR;
+
+using System.Collections.Generic;
 
 namespace ExeudVR
 {
     /// <summary>
     /// The BodyController is the meeting point for all data and where they get packaged and sent across the network. 
-    /// <para /><see href="https://github.com/willguest/ExeudVR/tree/develop/Documentation/Controllers/BodyController.md"/>
+    /// <para /><see href="https://github.com/Exeud/ExeudVR/tree/develop/Documentation/Controllers/BodyController.md"/>
     /// </summary>
     public class BodyController : MonoBehaviour
     {
@@ -29,14 +30,19 @@ namespace ExeudVR
 
         public ExeudVRAvatarController avatar { get; set; }
 
+        public float CharacterHeight { 
+            get { return transform.localPosition.y; }
+            private set { _ = transform.localPosition.y; } 
+        }
+
         // Network hook
         [DllImport("__Internal")]
         private static extern void SendData(string msg);
 
         // Event delegates
         public delegate void CursorFocus(GameObject focalObject, bool state);
-        public delegate void ObjectTrigger(GameObject focalObject, float value);
-        public delegate void ObjectGrip(ControllerHand hand, GameObject focalObject, bool state);
+        public delegate void ObjectTrigger(ObjectInterface focalObject, float value);
+        public delegate void ObjectGrip(ObjectInterface focalObject, bool state);
 
         // Body layout
         [SerializeField] private GameObject headObject;
@@ -49,36 +55,28 @@ namespace ExeudVR
         [SerializeField] private Transform rightPointer;
 
         private bool IsConnectionReady = false;
-        private bool hasInteractionEvent = false;
 
-        private AvatarEventType currentEventType = AvatarEventType.None;
-        private string currentEventData = "";
-        private static float startTime = 0.0f;
+        private Queue<string> nQ = new Queue<string>();
+        private int nQc = 0;
+        private float lastTick;
+        private float frameTick;
 
         private bool notifyingNetwork = false;
 
-        private void OnEnable()
-        {
-            WebXRManager.OnXRChange += OnXRChange;
-        }
-
         private void OnDisable()
         {
-            WebXRManager.OnXRChange -= OnXRChange;
+            PlatformManager.Instance.OnStateChange -= OnXRChange;
             MapEvents(false);
         }
 
-        private void OnXRChange(WebXRState state, int viewsCount, Rect leftRect, Rect rightRect)
+        private void OnXRChange(XRState state)
         {
-            //headObject.transform.localRotation = Quaternion.identity;
-
-            // link controller events in VR
-            MapControllerEvents(state == WebXRState.VR);
+            MapControllerEvents(state == XRState.VR);
 
             // toggle hand IK
             if (avatar != null)
             {
-                if (state == WebXRState.NORMAL)
+                if (state == XRState.NORMAL)
                 {
                     avatar.RelaxArmRig();
                 }
@@ -112,9 +110,6 @@ namespace ExeudVR
         {
             if (isOn)
             {
-                //rightController.OnHandFocus += HandleObjectFocus;
-                //leftController.OnHandFocus += HandleObjectFocus;
-
                 rightController.OnObjectGrip += HandleObjectGrip;
                 leftController.OnObjectGrip += HandleObjectGrip;
 
@@ -126,9 +121,6 @@ namespace ExeudVR
             }
             else
             {
-                //rightController.OnHandFocus -= HandleObjectFocus;
-                //leftController.OnHandFocus -= HandleObjectFocus;
-
                 rightController.OnObjectGrip -= HandleObjectGrip;
                 leftController.OnObjectGrip -= HandleObjectGrip;
 
@@ -150,12 +142,11 @@ namespace ExeudVR
                 }
                 if (NetworkIO.Instance)
                 {
-                    NetworkIO.Instance.OnConnectionChanged += SetConnectionReady;
                     NetworkIO.Instance.OnJoinedRoom += InitialiseDataChannel;
                 }
 
-                DesktopController.Instance.OnObjectFocus += HandleObjectFocus;
-                DesktopController.Instance.OnObjectTrigger += HandleObjectTrigger;
+                CursorManager.Instance.OnObjectFocus += HandleObjectFocus;
+                CursorManager.Instance.OnObjectTrigger += HandleObjectTrigger;
                 DesktopController.Instance.OnNetworkInteraction += PackageEventData;
 
             }
@@ -167,14 +158,13 @@ namespace ExeudVR
                 }
                 if (NetworkIO.Instance)
                 {
-                    NetworkIO.Instance.OnConnectionChanged -= SetConnectionReady;
                     NetworkIO.Instance.OnJoinedRoom -= InitialiseDataChannel;
                 }
 
                 IsConnectionReady = false;
 
-                DesktopController.Instance.OnObjectFocus -= HandleObjectFocus;
-                DesktopController.Instance.OnObjectTrigger -= HandleObjectTrigger;
+                CursorManager.Instance.OnObjectFocus -= HandleObjectFocus;
+                CursorManager.Instance.OnObjectTrigger -= HandleObjectTrigger;
                 DesktopController.Instance.OnNetworkInteraction -= PackageEventData;
             }
         }
@@ -186,51 +176,45 @@ namespace ExeudVR
 
         void Start()
         {
+            PlatformManager.Instance.OnStateChange += OnXRChange;
+
             MapEvents(true);
+            nQ.Clear();
 
 #if UNITY_EDITOR
-            // debugging option
             MapControllerEvents(true);
 #endif
 
             CurrentUserId = "Me";
             CurrentNoPeers = 0;
+
+            StartCoroutine(SendPackets());
         }
 
         void Update()
         {
-            if (!IsConnectionReady) return;
-
-            float frameTick = Time.time;
-            if (hasInteractionEvent)
+            if (IsConnectionReady && CurrentNoPeers > 0)
             {
-                startTime = frameTick + 0.25f;
-                SendData(JsonConvert.SerializeObject(BuildDataFrame()));
-
-                hasInteractionEvent = false;
-                currentEventData = "";
-            }
-            else if ((frameTick - startTime) > 0.25f)
-            {
-                startTime = frameTick;
-                if (CurrentNoPeers > 0)
+                frameTick = Time.time;
+                if ((frameTick - lastTick) > 0.25f)
                 {
-                    SendData(JsonConvert.SerializeObject(BuildDataFrame()));
+                    lastTick = frameTick;
+                    SendDataFrame();
                 }
             }
         }
 
-        private void HandleObjectGrip(ControllerHand hand, GameObject controllable, bool state)
+        private void HandleObjectGrip(ObjectInterface objInt, bool state)
         {
-            if (controllable != null && controllable.TryGetComponent(out ObjectInterface objInt))
+            if (objInt != null)
             {
-                objInt.SetGrip(GetHandController(hand), state);
+                objInt.SetGrip(state);
             }
         }
 
-        private void HandleObjectTrigger(GameObject controllable, float value)
+        private void HandleObjectTrigger(ObjectInterface objInt, float value)
         {
-            if (controllable != null && controllable.TryGetComponent(out ObjectInterface objInt))
+            if (objInt != null)
             {
                 objInt.SetTrigger(value);
             }
@@ -250,8 +234,9 @@ namespace ExeudVR
                 (hand == ControllerHand.LEFT) ? leftController : null;
         }
 
-        private void InitialiseDataChannel(string userid = "")
+        private void InitialiseDataChannel(string userId)
         {
+            CurrentUserId = userId;
             if (!notifyingNetwork)
             {
                 StartCoroutine(StartAfterDelay(2.0f));
@@ -262,7 +247,6 @@ namespace ExeudVR
         {
             notifyingNetwork = true;
             yield return new WaitForSeconds(delay);
-
             SetConnectionReady(true);
             notifyingNetwork = false;
         }
@@ -271,35 +255,34 @@ namespace ExeudVR
         {
             CurrentNoPeers = numberofplayers;
 
-            // send a packet to start communication
+            // send a packet to kick off comms
             if (CurrentNoPeers > 0)
             {
-                hasInteractionEvent = true;
+                SendDataFrame();
             }
         }
 
         private void SetConnectionReady(bool newState)
         {
-            CurrentUserId = NetworkIO.Instance.CurrentUserId;
-
-            // force send message on next frame
             IsConnectionReady = newState;
-            hasInteractionEvent = newState;
+            if (newState) SendDataFrame();
         }
 
         private void PackageEventData(AvatarHandlingData ahdFrame)
         {
-            if (CurrentNoPeers < 1)
-            {
-                return;
-            }
-
-            currentEventType = AvatarEventType.Interaction;
-            currentEventData = JsonConvert.SerializeObject(ahdFrame);
-            hasInteractionEvent = true;
+            SendDataFrame(AvatarEventType.Interaction, JsonConvert.SerializeObject(ahdFrame));
         }
 
-        private NodeDataFrame BuildDataFrame()
+        private void EnqueuePacket(string message)
+        {
+            if (IsConnectionReady)
+            {
+                nQ.Enqueue(message);
+                nQc++;
+            }
+        }
+
+        private void SendDataFrame(AvatarEventType eventType = AvatarEventType.None, string dataFrame = "")
         {
             if (Application.platform == RuntimePlatform.WebGLPlayer)
             {
@@ -316,15 +299,26 @@ namespace ExeudVR
                     LeftHandPointer = leftPointer.position,
                     RightHandPointer = rightPointer.position,
 
-                    EventType = currentEventType,
-                    EventData = currentEventData
+                    EventType = eventType,
+                    EventData = dataFrame
                 };
 
-                return dataToSend;
+                EnqueuePacket(JsonConvert.SerializeObject(dataToSend));
             }
-            else
+        }
+
+        private IEnumerator SendPackets()
+        {
+            while (true)
             {
-                return null;
+                if (nQc > 0)
+                {
+                    string packet = nQ.Dequeue();
+                    SendData(packet);
+                    nQc--;
+                }
+
+                yield return new WaitForEndOfFrame();
             }
         }
     }

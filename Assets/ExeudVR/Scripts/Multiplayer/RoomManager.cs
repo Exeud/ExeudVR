@@ -1,33 +1,24 @@
 /*
  * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * License, v.2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
 using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using UnityEngine;
-using UnityEngine.UI;
-
 
 namespace ExeudVR 
 {
     /// <summary>
     /// This class is responsible for managing rooms in a multiplayer game. It handles room creation, joining, and updating room information.
-    /// <para /><see href="https://github.com/willguest/ExeudVR/tree/develop/Documentation/Multiplayer/RoomManager.md"/>
+    /// <para /><see href="https://github.com/Exeud/ExeudVR/tree/develop/Documentation/Multiplayer/RoomManager.md"/>
     /// </summary>
     public class RoomManager : MonoBehaviour
     {
-        [SerializeField] private Text roomName;
-        [SerializeField] private ControlDynamics roomSelector;
-        [SerializeField] private Transform roomParent;
-        [SerializeField] private Transform roomTemplate;
-
-        [SerializeField] private Button CreateButton;
-        [SerializeField] private Button JoinButton;
-
-        private RoomObject[] rooms;
+        private List<RoomObject> rooms;
         private string currentRoom;
 
         // text assets for name generation
@@ -42,20 +33,16 @@ namespace ExeudVR
 
         private int maxPeers = 6;
         private bool publicRoom = true;
+        private string roomString = "";
+        private bool joinAnyRoom = false;
 
         private System.Random randomSeed;
-        private string roomString = "";
-        private bool newRoomFound = false;
-
 
         [DllImport("__Internal")]
         private static extern void RoomCheck(string sender);
 
         [DllImport("__Internal")]
         private static extern void OpenRoom(string sender, string roomId, int roomSize, bool isPublic);
-
-        [DllImport("__Internal")]
-        private static extern void SetRoomSize(string sender, string roomId, int roomSize);
 
         [DllImport("__Internal")]
         private static extern void JoinRoom(string sender, string roomId);
@@ -65,44 +52,57 @@ namespace ExeudVR
             randomSeed = new System.Random();
             fourLW = Resources.Load("4LetterWords") as TextAsset;
             fiveLW = Resources.Load("5LetterWords") as TextAsset;
-            roomName.text = GetNewRoomName();
+            rooms = new List<RoomObject>();
         }
 
-        private void Update()
-        {
-            if (newRoomFound)
-            {
-                newRoomFound = false;
-                MakeRoomListItem(rooms[rooms.Length - 1]);
-            }
-        }
 
-        private void RoomIsFull()
-        {
-            // to do
-        }
+    #region Interface
 
         public void CheckForRooms()
         {
             RoomCheck(gameObject.name);
         }
 
-        public void UpdateRoomName()
+        public void JoinAnyAvailableRoom()
         {
-            roomName.text = GetNewRoomName();
+            joinAnyRoom = true;
+            CheckForRooms();
         }
+
+        public void SetRoomSize(int newCapacity)
+        {
+            maxPeers = newCapacity;
+        }
+
+        public void SetRoomMode(bool isPublic)
+        {
+            publicRoom = isPublic;
+        }
+
+        public void CreateRoom()
+        {
+            OpenRoom(gameObject.name, roomString, maxPeers, publicRoom);
+        }
+
+        public void LeaveRoom()
+        {
+            currentRoom = string.Empty;
+            roomString = string.Empty;
+            randomSeed = new System.Random();
+        }
+
+    #endregion Interface
+
 
         private string GetNewRoomName()
         {
             string[] words = new string[2] { GetRandomWord(fiveLW.bytes, 5), GetRandomWord(fourLW.bytes, 4) };
-            roomString = string.Join(" ", words);
-            return roomString;
+            return string.Join(" ", words);
         }
 
         private void SetRoomName(string newName)
         {
             roomString = newName;
-            roomName.text = roomString;
         }
 
         private string GetRandomWord(byte[] source, int wordLength)
@@ -124,128 +124,117 @@ namespace ExeudVR
             return foundWord;
         }
 
-        public void SetRoomSize(int newCapacity)
+        private void OpenOrJoinRoom()
         {
-            maxPeers = newCapacity;
+            string roomCandidate = GetAvailableRoom();
+
+            if (!string.IsNullOrEmpty(roomCandidate))
+            {
+                JoinRoom(gameObject.name, roomCandidate);
+            }
+            else
+            {
+                roomString = GetNewRoomName();
+                CreateRoom();
+            }
         }
 
-        public void SetRoomMode(bool isPublic)
+        private string GetAvailableRoom()
         {
-            publicRoom = isPublic;
+            string availableRoom = string.Empty;
+            for (int r = 0; r < rooms.Count; r++)
+            {
+                if ((int)rooms[r].Participants.Length < (int)rooms[r].MaxParticipantsAllowed)
+                {
+                    availableRoom = rooms[r].SessionId;
+                    Debug.Log("Available room found: " + availableRoom);
+                }
+            }
+            return availableRoom;
         }
 
-        public void CreateRoom()
+        private void RoomCheckComplete(string message)
         {
-            OpenRoom(gameObject.name, roomString, maxPeers, publicRoom);
+            if (joinAnyRoom)
+            {
+                OpenOrJoinRoom();
+            }
+        }
+
+        private void RoomCheckFailed(string errorMessage)
+        {
+            Debug.Log("Room check failed: " + errorMessage);
         }
 
         private void RoomCreated(string message)
         {
             currentRoom = message;
-            CheckForRooms();
+            roomString = currentRoom;
 
-            // prevent further room creation or joining
-            CreateButton.interactable = false;
-            JoinButton.interactable = false;
-        }
-
-        public void JoinRoom()
-        {
-            if (!string.IsNullOrEmpty(roomSelector.State))
-            {
-                roomString = roomSelector.State;
-                if (roomString != currentRoom)
-                {
-                    JoinRoom(gameObject.name, roomString);
-                }
-            }
-            else
-            {
-                var tcl = roomTemplate.GetComponent<Text>();
-
-                if (tcl.color == Color.yellow){
-                    tcl.color = Color.white;
-                }
-                else {
-                    tcl.color = Color.yellow;
-                }
-            }
+            Debug.Log("You made a room of " + roomString);
+            NetworkIO.Instance.MakeReady();
         }
 
         private void RoomJoined(string message)
         {
-            CheckForRooms();
             currentRoom = message;
+            roomString = currentRoom;
 
-            // prevent new room creation or joining (until disconnect)
-            CreateButton.interactable = false;
-            JoinButton.interactable = false;
+            Debug.Log("You joined a room of " + roomString);
+            NetworkIO.Instance.MakeReady();
+        }
+
+        private void RoomIsFull(string roomId)
+        {
+            Debug.Log("Room is full");
+        }
+
+        private void RoomNotFound(string roomId)
+        {
+            Debug.Log("Room could not be found: " + roomId);
+            
+            // check for an remove bad room
+            for (int r = 0; r < rooms.Count; r++)
+            {
+                if (rooms[r].SessionId == roomId)
+                {
+                    rooms.RemoveAt(r);
+                    Debug.Log("Scrubbed room: " + roomId);
+                }
+            }
+
+            OpenOrJoinRoom();
         }
 
 
-        private void ReceiveRoomInfo(string message)
+        private void RoomFound(string message)
         {
             RoomObject newRoom = JsonConvert.DeserializeObject<RoomObject>(message);
             bool roomExists = false;
-            if (rooms == null)
-            {
-                rooms = new RoomObject[0];
-            }
 
-            for (int r = 0; r < rooms.Length; r++)
+            // If room already exists, update it
+            for (int r = 0; r < rooms.Count; r++)
             {
-                RoomObject room = rooms[r];
-
-                if (room.Sessionid == newRoom.Sessionid)
+                if (rooms[r].SessionId == newRoom.SessionId)
                 {
-                    // room already exists
                     roomExists = true;
+
+                    RoomObject room = rooms[r];
                     room.Owner = newRoom.Owner;
                     room.Participants = newRoom.Participants;
                     room.MaxParticipantsAllowed = newRoom.MaxParticipantsAllowed;
                     room.Session = newRoom.Session;
-
-                    string roomDetails = room.Sessionid + " (" + room.Participants.Length + "/" + room.MaxParticipantsAllowed.ToString() + ")";
-                    roomParent.GetChild(r + 1).gameObject.GetComponent<TMPro.TextMeshPro>().text = roomDetails;
                 }
             }
 
+            // Extend array with new room
             if (!roomExists)
             {
-                Array.Resize(ref rooms, rooms.Length + 1);
-                rooms[rooms.Length - 1] = newRoom;
-                newRoomFound = true;
+                rooms.Add(newRoom);
+                Debug.Log("Room found: " + newRoom.SessionId);
             }
-
-            JoinButton.interactable = (rooms.Length > 0 && newRoom.Sessionid != currentRoom);
         }
 
-        private void MakeRoomListItem(RoomObject room)
-        {
-            string roomDetails = room.Sessionid + " (" + room.Participants.Length + "/" + room.MaxParticipantsAllowed.ToString() + ")";
-
-            // create new room label from prefab
-            GameObject roomObject = Instantiate(roomTemplate.gameObject);
-            roomObject.name = room.Sessionid;
-            roomObject.GetComponent<TMPro.TextMeshPro>().text = roomDetails;
-            roomObject.transform.SetParent(roomParent, false);
-
-            // make new control event
-            ControlEvent newCE = new ControlEvent()
-            {
-                state = room.Sessionid,
-                sensor = roomObject.GetComponent<Collider>(),
-                controlEffect =  null
-            };
-
-            int noRooms = roomSelector.AddControlEvent(newCE);
-            float objectheight = -11.0f * noRooms + 6.0f;
-            Vector3 objectPos = new Vector3(0f, objectheight, 0f);
-
-            roomObject.transform.localScale = new Vector3(0.5f, 0.5f, 0.5f);
-            roomObject.GetComponent<RectTransform>().anchoredPosition = objectPos;
-            roomObject.transform.rotation = roomTemplate.rotation;
-        }
     }
 }
 

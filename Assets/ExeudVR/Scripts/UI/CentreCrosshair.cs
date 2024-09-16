@@ -43,6 +43,8 @@ public class CentreCrosshair : MonoBehaviour
     [Tooltip("Specifies the image to draw the crosshair to. If you leave this empty, this script generates a Canvas and an Image with the correct settings for you.")]
     public Image m_crosshairImage;
 
+    private GameObject canvas;
+
     private void Awake()
     {
         if(m_crosshairImage == null)
@@ -55,21 +57,22 @@ public class CentreCrosshair : MonoBehaviour
 
     public void InitialiseCrosshairImage()
     {
-        GameObject crosshairGameObject = new GameObject();
-        crosshairGameObject.name = "Crosshair Canvas";
+        canvas = new GameObject();
+        canvas.name = "Crosshair Canvas";
 
-        Canvas crosshairCanvas = crosshairGameObject.AddComponent<Canvas>();
+        Canvas crosshairCanvas = canvas.AddComponent<Canvas>();
         crosshairCanvas.renderMode = RenderMode.ScreenSpaceOverlay;
 
-        crosshairGameObject.AddComponent<CanvasScaler>();
+        canvas.AddComponent<CanvasScaler>();
 
         GameObject imageGameObject = new GameObject();
         imageGameObject.name = "Crosshair Image";
-        imageGameObject.transform.parent = crosshairGameObject.transform;
+        imageGameObject.transform.parent = canvas.transform;
 
         m_crosshairImage = imageGameObject.AddComponent<Image>();
         m_crosshairImage.rectTransform.localPosition = new Vector2(0, 0);
         m_crosshairImage.raycastTarget = false;
+        
     }
 
     public void GenerateCrosshair()
@@ -113,6 +116,11 @@ public class CentreCrosshair : MonoBehaviour
         {
             GenerateCrosshair();
         }
+    }
+
+    public void SetActive(bool newState)
+    {
+        canvas.SetActive(newState);
     }
 
     public void SetColor(Color color, bool redrawCrosshair)

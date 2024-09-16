@@ -50,7 +50,7 @@ Preset:
     objectReference: {fileID: 0}
   - target: {fileID: 0}
     propertyPath: m_DefaultSolverVelocityIterations
-    value: 1
+    value: 4
     objectReference: {fileID: 0}
   - target: {fileID: 0}
     propertyPath: m_QueriesHitBackfaces
@@ -290,6 +290,6 @@ Preset:
     objectReference: {fileID: 0}
   - target: {fileID: 0}
     propertyPath: m_DefaultMaxAngularSpeed
-    value: 7
+    value: 12
     objectReference: {fileID: 0}
   m_ExcludedProperties: []

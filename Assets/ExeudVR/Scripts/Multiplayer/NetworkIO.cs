@@ -15,7 +15,7 @@ namespace ExeudVR
 {
     /// <summary>
     /// The main entry point for P2P network communication. 
-    /// <para /><see href="https://github.com/willguest/ExeudVR/tree/develop/Documentation/Multiplayer/NetworkIO.md"/>
+    /// <para /><see href="https://github.com/Exeud/ExeudVR/tree/develop/Documentation/Multiplayer/NetworkIO.md"/>
     /// </summary>
     public class NetworkIO : MonoBehaviour
     {
@@ -23,37 +23,48 @@ namespace ExeudVR
         private static NetworkIO _instance;
         public static NetworkIO Instance { get { return _instance; } }
 
-        // js functions
         [DllImport("__Internal")]
-        private static extern void CreateNewConnection(string sender, string socketURL, int roomSize);
-
-        [DllImport("__Internal")]
-        private static extern void StartConnection(string roomId);
+        private static extern void PrimeConnection(string sender, string socketURL, int capacity);
 
         [DllImport("__Internal")]
         private static extern void CeaseConnection();
 
-        public delegate void NetworkUserEvent(string connectionStatus, string userId, string payload);
+        [DllImport("__Internal")]
+        private static extern void ConfigureAudio();
+
+        public enum ConnectionState
+        {
+           NotStarted   = 0,
+           Matchmaking  = 1,
+           Connected    = 2,
+           Disconnected = 3
+        }
+
+        private ConnectionState _connectionState;
+
+        public delegate void NetworkUserEvent(ConnectionState state, string userId, string payload);
         public event NetworkUserEvent OnNetworkChanged;
 
         // interface
-        public float NetworkUpdateFrequency { get; private set; }
-        public bool ReadyFlag { get; set; }
-        public string CurrentUserId { get; private set; }
-        public bool IsConnected { get; private set; }
+        //public float NetworkUpdateFrequency { get; private set; }
+        //public bool IsConnected { get; private set; }
+
 
         // inspector objects
         [SerializeField] private string SignalingServerUrl = "https://rtcmulticonnection-sockets.herokuapp.com:443/";
         
         [SerializeField] private Renderer connectionIndicator;
 
+        [SerializeField] private RoomManager roomManager;
+
         // private variables
         private RtcMultiConnection myConnection;
         private static List<string> connectedUsers;
         private List<string> previousOwnIds;
 
+        private bool ReadyFlag;
         private bool readyToReceive = false;
-        private bool WaitingForOthers = false;
+        private bool matchmaking = false;
         
         // events
         public delegate void ConnectionEvent(bool connectionState);
@@ -62,15 +73,9 @@ namespace ExeudVR
         public delegate void RoomJoinEvent(string newUserId);
         public event RoomJoinEvent OnJoinedRoom;
 
-        // private connection variables
-        private string roomPrefix = "ICVR-";
-        private string roomString = "";
-        private int RoomCapacity = 6;
-        private int roomNumber = 0;
-
         private float connectionStartTick = 0;
 
-        private string myStatus;
+        private string CurrentUserId;
         private string userInfo;
         private bool networkUpdateReady = false;
 
@@ -84,19 +89,20 @@ namespace ExeudVR
             else
             {
                 _instance = this;
-                //DontDestroyOnLoad(this.gameObject); // option to keep between scenes
+                //DontDestroyOnLoad(this.gameObject); // uncomment to keep between scenes
             }
         }
 
         private void Start()
         {
+            StartManager.Instance.OnInitialised += OpenConnection;
+
             connectedUsers = new List<string>();
             previousOwnIds = new List<string>();
 
             connectionIndicator.material.EnableKeyword("_EMISSION");
             StartCoroutine(FadeToColour(connectionIndicator, Color.gray, 1.0f));
 
-            myStatus = "Awake";
             CurrentUserId = "";
             userInfo = "";
             networkUpdateReady = true;
@@ -113,22 +119,8 @@ namespace ExeudVR
             if (networkUpdateReady)
             {
                 networkUpdateReady = false;
-                OnNetworkChanged?.Invoke(myStatus, CurrentUserId, userInfo);
+                OnNetworkChanged?.Invoke(_connectionState, CurrentUserId, userInfo);
             }
-        }
-
-        private int IncrementRoomId()
-        {
-            roomNumber++;
-            roomString = roomPrefix + roomNumber.ToString();
-            networkUpdateReady = true;
-            return roomNumber;
-        }
-
-        public void OpenJoin()
-        {
-            roomString = roomPrefix + roomNumber.ToString();
-            StartConnection(roomString);
         }
 
         private void OnDisable()
@@ -140,49 +132,60 @@ namespace ExeudVR
         }
 
 
-        public void StartRtcConnection()
+        public void OpenJoin()
         {
-            // 3-second cool down
-            if ((Time.time - connectionStartTick) < 3.0f) return;
-            connectionStartTick = Time.time;
+            if (_connectionState != ConnectionState.NotStarted)
+            {
+                roomManager.JoinAnyAvailableRoom();
+            }
+        }
 
+        public void CloseRTC()
+        {
+            roomManager.LeaveRoom();
+            CloseConnection();
+        }
+
+        public void MakeReady()
+        {
+            StartCoroutine(FadeToColour(connectionIndicator, Color.yellow, 2f));
+            ReadyFlag = true;
+        }
+
+
+        private void OpenConnection()
+        {
             if (Application.platform != RuntimePlatform.WindowsEditor)
             {
-                CreateNewConnection(gameObject.name, SignalingServerUrl, RoomCapacity);
+                PrimeConnection(gameObject.name, SignalingServerUrl, roomManager.MaxPeers);
             }
-        }
-
-        public void StopRtcConnection()
-        {
-            // 3-second cool down
-            if ((Time.time - connectionStartTick) < 3.0f) return;
-            connectionStartTick = Time.time;
-
-            if (IsConnected || WaitingForOthers)
-            {
-                CloseConnection();
-            }
-        }
-
-        private void RoomIsFull(string roomId)
-        {
-            IncrementRoomId();
-            OpenJoin();
         }
 
         private void CloseConnection()
         {
             readyToReceive = false;
-            IsConnected = false;
-            WaitingForOthers = false;
+            matchmaking = false;
 
             connectedUsers.Clear();
-            OnConnectionChanged.Invoke(false);
+            OnConnectionChanged?.Invoke(false);
 
             StartCoroutine(FadeToColour(connectionIndicator, Color.red, 2f));
-
-            CeaseConnection();
             AvatarManager.Instance.ResetScene();
+
+            if (Application.platform != RuntimePlatform.WindowsEditor && 
+                _connectionState != ConnectionState.NotStarted)
+            {
+                CeaseConnection();
+            }
+        }
+
+        private void ConnectionClosed(string message)
+        {
+            if (Application.platform != RuntimePlatform.WindowsEditor)
+            {
+                PrimeConnection(gameObject.name, SignalingServerUrl, roomManager.MaxPeers);
+            }
+            Debug.Log("WebRTC Connection closed: " + message);
         }
 
         private void OnFinishedLoadingRTC(string message)
@@ -205,39 +208,14 @@ namespace ExeudVR
                 return;
             }
 
-            // update UI
-            StartCoroutine(FadeToColour(connectionIndicator, Color.yellow, 2f));
-
-            myStatus = "Started";
-            WaitingForOthers = true;
+            _connectionState = ConnectionState.Matchmaking;
+            matchmaking = true;
             networkUpdateReady = true;
 
-            // open or join room
-            roomString = roomPrefix + roomNumber.ToString();
-            StartConnection(roomString);
+            Debug.Log("WebRTC connection ready.");
+            roomManager.CheckForRooms();
         }
 
-
-
-        private void OnConnectionStarted(string message)
-        {
-            ReadyFlag = true;
-            myStatus = "Connected";
-            WaitingForOthers = true;
-            networkUpdateReady = true;
-            OnConnectionChanged.Invoke(true);
-        }
-
-        private void OnUserOnline(string userid)
-        {
-            if (!connectedUsers.Contains(userid))
-            {
-                Debug.Log(userid + " is online.");
-                ReadyFlag = true;
-                //OnConnectionChanged.Invoke(true);
-                OnJoinedRoom.Invoke(CurrentUserId);
-            }
-        }
 
         private void OnDestroy()
         {
@@ -246,12 +224,9 @@ namespace ExeudVR
 
             string mins = (Time.time / 60.0f).ToString();
             Debug.Log("Session destroyed after " + mins + " mins");
-        }
 
-        public void SignalReadiness()
-        {
-            ReadyFlag = true;
-        }
+            StartManager.Instance.OnInitialised -= OpenConnection;
+        } 
 
         private void RemoveAvatar(string avatarId)
         {
@@ -288,7 +263,7 @@ namespace ExeudVR
         {
             if (string.IsNullOrEmpty(data.Data))
             {
-                Debug.Log("null data.Data");
+                Debug.Log("null pose data");
                 return;
             }
 
@@ -307,8 +282,9 @@ namespace ExeudVR
             ConnectionData cdata = JsonConvert.DeserializeObject<ConnectionData>(message);
             if (!connectedUsers.Contains(cdata.Userid) && !previousOwnIds.Contains(cdata.Userid))
             {
-                Debug.Log("User showed up on network: " + cdata.Userid);
+                Debug.Log(cdata.Userid + " showed up on the network");
                 connectedUsers.Add(cdata.Userid);
+
             }
             else
             {
@@ -316,11 +292,11 @@ namespace ExeudVR
             }
 
             StartCoroutine(FadeToColour(connectionIndicator, Color.green, 2f));
+            OnConnectionChanged?.Invoke(true);
 
-            myStatus = "Connected";
-            IsConnected = true;
+            _connectionState = ConnectionState.Connected;
             ReadyFlag = true;
-            WaitingForOthers = false;
+            matchmaking = false;
 
             OnJoinedRoom.Invoke(CurrentUserId);
             networkUpdateReady = true;
@@ -339,12 +315,13 @@ namespace ExeudVR
                 ConnectionData ddata = JsonConvert.DeserializeObject<ConnectionData>(message);
 
                 DeleteAvatar(ddata.Userid);
-                myStatus = "Disconnected";
+
+                _connectionState = ConnectionState.Disconnected;
                 networkUpdateReady = true;
             }
             catch (Exception e)
             {
-                Debug.LogError("error in disconnection:" + e.Message);
+                Debug.LogError("Error in disconnection:" + e.Message);
             }
         }
 
@@ -356,11 +333,11 @@ namespace ExeudVR
                 if (connectedUsers.Count < 1)
                 {                
                     StartCoroutine(FadeToColour(connectionIndicator, Color.yellow, 1.0f));
-                    myStatus = "Waiting for others";
+                    _connectionState = ConnectionState.Matchmaking;
                 }
             }
 
-            Debug.Log("removing avatar:" + avatarId);
+            Debug.Log("Removing avatar:" + avatarId);
             AvatarManager.Instance.RemovePlayerAvatar(avatarId);
         }
 

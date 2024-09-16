@@ -21,7 +21,7 @@ namespace ExeudVR
     /// Adding this component to an object extends the physics system, allowing it to be thrown with a force 
     /// based on the hand velocity, as well as the weight of the object. Setting a new object density will 
     /// automatically update the object's mass and, when the mesh is readable, will calculate its volume. 
-    /// <see href="https://github.com/willguest/ExeudVR/tree/develop/Documentation/Interaction/RigidDynamics.md"/>
+    /// <see href="https://github.com/Exeud/ExeudVR/tree/develop/Documentation/Interaction/RigidDynamics.md"/>
     /// </summary>
     [RequireComponent(typeof(Rigidbody))]
     public class RigidDynamics : MonoBehaviour
@@ -31,6 +31,10 @@ namespace ExeudVR
 
         [Tooltip("Target for volume estimation.")]
         [SerializeField] private MeshFilter targetMesh;
+
+        public Vector3 DefaultLocation { get; private set; }
+        public Quaternion DefaultRotation { get; private set; }
+        public Vector3 DefaultScale { get; private set; }
 
         public float Mass
         {
@@ -107,6 +111,10 @@ namespace ExeudVR
 
         private void ResetComponent()
         {
+            DefaultLocation = transform.position;
+            DefaultRotation = transform.rotation;
+            DefaultScale = transform.lossyScale;
+
             currVelEntry = 0;
             currRotEntry = 0;
 

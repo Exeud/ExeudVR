@@ -1,4 +1,4 @@
-/*
+ /*
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
@@ -6,7 +6,6 @@
 
 using Newtonsoft.Json;
 using ExeudVR.SharedAssets;
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
@@ -18,7 +17,7 @@ namespace ExeudVR
     /// <summary>
     /// Acts as the functional centre and data hub for each avatar. Routes messages to and from the hands, 
     /// manages audio events and other messages.
-    /// <para /><see href="https://github.com/willguest/ExeudVR/tree/develop/Documentation/Multiplayer/AvatarController.md"/>
+    /// <para /><see href="https://github.com/Exeud/ExeudVR/tree/develop/Documentation/Multiplayer/AvatarController.md"/>
     /// </summary>
     public class AvatarController : MonoBehaviour
     {
@@ -30,7 +29,7 @@ namespace ExeudVR
 
         public Color DefaultColour { get; private set; }
 
-        [SerializeField] private List<Renderer> AffectedRenderers;
+        [SerializeField] private List<Renderer> Renderers;
         
         [SerializeField] private GameObject head;
         [SerializeField] private GameObject body;
@@ -64,6 +63,7 @@ namespace ExeudVR
         void Start()
         {
             fixedJoint = head.GetComponent<FixedJoint>();
+            ChangeColour();
         }
 
         void Update()
@@ -84,6 +84,7 @@ namespace ExeudVR
         public void Initialise()
         {
             DefaultColour = ChangeColour();
+            
             avatarLerpTime = 0.8f;
             Voice = head.GetComponent<AudioSource>();
         }
@@ -188,9 +189,9 @@ namespace ExeudVR
                     ReceiveInstruction(ahdFrame);
                 }
             }
-            catch (Exception e)
+            catch (System.Exception e)
             {
-                Debug.LogError("Error when talking to hands:" + e.Message);
+                Debug.LogError("Error delivering hand instruction:" + e.Message);
             }
         }
 
@@ -275,12 +276,12 @@ namespace ExeudVR
 
         private Color GetRandomColour()
         {
-            float upperlimit = 30f;
+            float uL = 30f;
             return new Color(
-                (float)UnityEngine.Random.Range(0, upperlimit),
-                (float)UnityEngine.Random.Range(0, upperlimit),
-                (float)UnityEngine.Random.Range(0, upperlimit),
-                (float)UnityEngine.Random.Range(0, upperlimit)
+                Random.Range(0.0f, uL),
+                Random.Range(0.0f, uL),
+                Random.Range(0.0f, uL),
+                Random.Range(0.0f, uL)
                 );
         }
 
@@ -288,9 +289,16 @@ namespace ExeudVR
         {
             Color c = GetRandomColour();
 
-            foreach (MeshRenderer r in AffectedRenderers)
+            foreach (MeshRenderer r in Renderers)
             {
-                r.material.SetColor("_EmissionColor", c * 0.02f);
+                foreach (Material mat in r.materials)
+                {
+                    if (mat.IsKeywordEnabled("_SPECULAR_SETUP"))
+                    {
+                        r.material.EnableKeyword("_EMISSION");
+                        r.material.SetColor("_EmissionColor", c * 0.02f);
+                    }
+                }   
             }
             return c;
         }
@@ -352,13 +360,13 @@ namespace ExeudVR
             }
         }
 
-        private void LoadClip(string url, Action<AudioClip> onLoadingCompleted)
+        private void LoadClip(string url, System.Action<AudioClip> onLoadingCompleted)
         {
             StartCoroutine(LoadStreamFromUri(url, onLoadingCompleted));
         }
 
 
-        IEnumerator LoadStreamFromUri(string _url, Action<AudioClip> onLoadingCompleted)
+        IEnumerator LoadStreamFromUri(string _url, System.Action<AudioClip> onLoadingCompleted)
         {
             using (var webRequest = UnityWebRequestMultimedia.GetAudioClip(_url, AudioType.AUDIOQUEUE))
             {

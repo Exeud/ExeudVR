@@ -1,56 +1,50 @@
 mergeInto(LibraryManager.library, {
+	PrimeConnection: function(sender, socketURL, capacity){
 
-	CreateNewConnection__deps: ['audioToAvatar'],
-	CreateNewConnection: function (sender, socketURL, roomSize) {
-
-		console.log("Starting WebRTC connection");
-		this.unityNode = Pointer_stringify(sender);
+		this.NetworkNode = Pointer_stringify(sender);
+		var connection = new RTCMultiConnection();
 		var jSocketURL = Pointer_stringify(socketURL);
 
-		// ......................................................
-		// ..................RTCMultiConnection Code.............
-		// ......................................................
-
-		var connection = new RTCMultiConnection();
 		connection.socketURL = jSocketURL;
-		connection.socketMessageEvent = 'RTCMultiConnection-Message';
+		
+		var publicRoomIdentifier = 'exeudvr';
+		connection.publicRoomIdentifier = publicRoomIdentifier;
+		connection.socketMessageEvent = publicRoomIdentifier;
+		
+		connection.maxParticipantsAllowed = parseInt(capacity);
 
-
+		connection.autoCreateMediaElement = false;
+		connection.autoCloseEntireSession = true;
+				
 		connection.session = {
-			audio: false,
-			video: false,
-			data: true
+		  audio: false,
+		  video: false,
+		  data: true
 		};
 
 		connection.mediaConstraints = {
-			audio: true,
-			video: false
+		  audio: true,
+		  video: false
 		};
 
 		connection.sdpConstraints.mandatory = {
-			OfferToReceiveAudio: true,
-			OfferToReceiveVideo: false,
-			VoiceActivityDetection: false,
-			IceRestart: true
+		  OfferToReceiveAudio: true,
+		  OfferToReceiveVideo: false,
+		  VoiceActivityDetection: false,
+		  IceRestart: false
 		};
 
-		//connection.trickleIce = false;
-		connection.autoCreateMediaElement = false;
-		connection.autoCloseEntireSession = false;
-
-		connection.maxParticipantsAllowed = roomSize;
-
 		// https://www.rtcmulticonnection.org/docs/iceServers/
-		// find non-google STUNs: https://raw.githubusercontent.com/pradt2/always-online-stun/master/valid_hosts.txt
-
+		// https://raw.githubusercontent.com/pradt2/always-online-stun/master/valid_hosts.txt
+		
 		connection.candidates = {
 			turn: true,
 			stun: true
 		};
 		connection.iceTransportPolicy = 'all';
-
+		
 		connection.iceServers = [];
-
+		
 		connection.iceServers.push({
 			urls: 'stun:stun.nexphone.ch:3478'
 		});
@@ -83,80 +77,64 @@ mergeInto(LibraryManager.library, {
 			credential: "ooCaXZjzUE9RC8sz",
 		});
 
-
-
-		// ......................................................
-		// .......................Data Transfer..................
-		// ......................................................
-
-		connection.onopen = function (event) {
-			// report the connection event to unity
-			SendMessage(unityNode, "OnConnectedToNetwork", JSON.stringify(event));
+		connection.onopen = function(event) {
+		  //console.log("a peer is born:" + JSON.stringify(event));
+		  
+		  // report the connection event to unity
+		  SendMessage(NetworkNode, "OnConnectedToNetwork", JSON.stringify(event));
 		};
 
-		connection.onclose = function (event) {
-
-			// ensure the peer connection object is working
-			if (typeof connection.peers[event.userid] === "undefined") {
-				console.log("Disconnection flag:\n" + JSON.stringify(event));
-				return;
-			}
-
-			// check for ICE 
-			var pc = connection.peers[event.userid].peer;
-
-			if (pc._lastConnectionState === "connected") {
-				console.log("Connection dropped, restarting ice")
-				pc.restartIce();
-			}
-			else {
-				console.log("Disconnection event:\n" + JSON.stringify(pc));
-				connection.disconnectWith(event.userid);
-				connection.deletePeer(event.userid);
-
-				// send event to unity
-				SendMessage(unityNode, "OnDisconnectedFromNetwork", JSON.stringify(event));
-			}
+		connection.onclose = function(event){
+			console.log("disconnection event:\n" + JSON.stringify(event));       
+			connection.disconnectWith(event.userid);
+			connection.deletePeer(event.userid);
+			
+			// send event to unity
+			SendMessage(NetworkNode, "OnDisconnectedFromNetwork", JSON.stringify(event));
 		};
 
-		connection.onleave = function (event) {
-			console.log("OnLeave flag:\n" + JSON.stringify(event));
-			Object.keys(connection.streamEvents).forEach(function (streamid) {
+		connection.onleave = function(event) {
+			Object.keys(connection.streamEvents).forEach(function(streamid) {
 				var streamEvent = connection.streamEvents[streamid];
 				if (streamEvent.userid === event.userid) {
-					streamEvent.stream.getAudioTracks().forEach(function (track) {
-						console.log("Stopping audio track: " + JSON.stringify(track));
+					streamEvent.stream.getAudioTracks().forEach(function(track) {
+						console.log ("stopping audio track");
 						track.enabled = false;
 					});
 					connection.onstreamended(streamEvent);
 				}
 			});
 		};
-
-		connection.onRoomFull = function (roomid) {
-			console.log('Room is full, incrementing...');
-			SendMessage(unityNode, "RoomIsFull", roomid);
+		
+		connection.onRoomFull = function(roomid) {
+			console.log('Room Full');
 		};
-
-		connection.onUserStatusChanged = function (event) {
+		
+		connection.onUserStatusChanged = function(event) {
 			var targetUserId = event.userid;
-
-			if (event.status == 'offline') {
-				console.log(targetUserId + " is now offline");
-				SendMessage(unityNode, "RemoveAvatar", targetUserId);
+			
+			if (event.status == 'offline'){
+				console.log(targetUserId + " left");
+				SendMessage(NetworkNode, "RemoveAvatar", targetUserId);
 			}
-			else if (event.status == 'online') {
-				console.log(targetUserId + " is now online");
-				SendMessage(unityNode, "OnUserOnline", targetUserId);
-			}
-
-			connection.numberOfConnectedUsers = connection.getAllParticipants().length;
-			console.log("numberOfConnectedUsers=" + connection.numberOfConnectedUsers);
 		};
-
-		connection.onstreamended = function (event) {
-			console.log("Stream ended:" + JSON.stringify(event));
-			/*
+		
+		connection.onmessage = function(event) {
+			SendMessage(NetworkNode, "ReceivePoseData", JSON.stringify(event));
+		};
+		
+		this.connection = connection;
+		SendMessage(NetworkNode, 'OnFinishedLoadingRTC', JSON.stringify(connection));
+	},
+	
+    ConfigureAudio__deps: ['audioToAvatar'],
+	ConfigureAudio: function() {
+		
+		var audioCtx = new AudioContext();
+			
+		connection.onstreamended = function(event) {
+			console.log("stream ended:" + JSON.stringify(event));
+			
 			connection.streamEvents.selectAll({
 				userid: event.userid,
 				remote: true,
@@ -164,142 +142,191 @@ mergeInto(LibraryManager.library, {
 			}).forEach(function(streamEvent) {
 				streamEvent.stream.stop();
 			});
-			*/
-
-			connection.numberOfConnectedUsers = connection.getAllParticipants().length;
 		};
 
-		connection.onmessage = function (event) {
-			SendMessage(unityNode, "ReceivePoseData", JSON.stringify(event));
-		};
-
-		connection.onstream = function (event) {
+		connection.onstream = function(event) {
 			if (event.type === 'remote') {
-				try {
+				try{
+					
+				var audioEvent = event;
+				var audioMimeType = 'audio/webm';
 
-					var audioEvent = event;
-					var audioCtx = new AudioContext();
-					var audioMimeType = 'audio/webm';
-
-					// identify mediastream object
-					var mediaStream = connection.streamEvents[event.streamid].stream;
-
-					console.log("OnStream::" + event.streamid + ",\n" + JSON.stringify(event.stream));
-
-					// create media recorder 
-					var options = {
-						mimeType: audioMimeType,
-						audioBitsPerSecond: audioCtx.sampleRate
-					}
-					var mediaRecorder = new MediaRecorder(mediaStream, options);
-					var audioBlob = null;
-					var noChunks = 0;
-					var header = null;
-
-					// configure data callback
-					mediaRecorder.ondataavailable = function (event) {
-						noChunks++;
-						if (noChunks == 1) {
-							audioBlob = new Blob([event.data], { 'type': audioMimeType });
-							header = audioBlob.slice(0, 264);
-						}
-						else {
-							audioBlob = new Blob([header, event.data.slice(4, -1)], { 'type': audioMimeType });
-						}
-
-						var audioURL = URL.createObjectURL(audioBlob);
-						audioEvent.mediaElement.URL = audioURL;
-
-						_audioToAvatar(audioEvent);
-					}
-
-					mediaStream.onremovetrack = function (event) {
-						console.log("Removed track: " + event.track.kind + ":" + event.track.label);
-						mediaRecorder.stop();
-						noChunks = 0;
-					};
-
-					// collect the stream
-					mediaRecorder.start(1000);
-
+				// identify mediastream object
+				var mediaStream = connection.streamEvents[event.streamid].stream;
+				
+				//console.log("OnStream::" + event.streamid + ",\n" + JSON.stringify(event.stream));
+				
+				// create media recorder 
+				var options = { 
+					mimeType: audioMimeType,
+					audioBitsPerSecond: audioCtx.sampleRate
 				}
-				catch (e) {
-					console.log("Broken audio stream \n" + e);
+				var mediaRecorder = new MediaRecorder(mediaStream, options);
+				var audioBlob = null;
+				var noChunks = 0;
+				var header = null;
+				
+				// configure data callback
+				mediaRecorder.ondataavailable = function (event) {
+					noChunks++;
+					if (noChunks == 1){
+						audioBlob = new Blob([event.data], { 'type' : audioMimeType });
+						header = audioBlob.slice(0, 264);
+					}
+					else{
+						audioBlob = new Blob([header, event.data.slice(4,-1)], { 'type' : audioMimeType});
+					}
+
+					var audioURL = URL.createObjectURL(audioBlob); 
+					audioEvent.mediaElement.URL = audioURL;
+					_audioToAvatar(audioEvent);
+				}
+				
+				mediaStream.onremovetrack = function(event) {
+					console.log("Removed track: " + event.track.kind + ":" + event.track.label);
+					mediaRecorder.stop();
+					noChunks = 0;
+				};
+				
+				// collect the stream
+				mediaRecorder.start(1000);
+				
+				}
+				catch(e){
+					console.log("broken stream: " + e);
 				}
 			}
 		};
-
-		this.connection = connection;
-
-		SendMessage(unityNode, 'OnFinishedLoadingRTC', JSON.stringify(connection));
+		
+		// end events
+		SendMessage(NetworkNode, "OnAudioConfigured", "");
 	},
 
-	audioToAvatar: function (event) {
-
-		if (connection.numberOfConnectedUsers >= 1) {
+    audioToAvatar : function(event){
 			SendMessage(event.userid, "AddAudioStream", JSON.stringify(event));
-		}
 	},
-
+	
 	function() {
-		var params = {},
-			r = /([^&=]+)=?([^&]*)/g;
+		  var params = {},
+			  r = /([^&=]+)=?([^&]*)/g;
 
-		function d(s) {
-			return decodeURIComponent(s.replace(/\+/g, ' '));
+		  function d(s) {
+			  return decodeURIComponent(s.replace(/\+/g, ' '));
+		  }
+		  var match, search = window.location.search;
+		  while (match = r.exec(search.substring(1)))
+			  params[d(match[1])] = d(match[2]);
+		  window.params = params;
+		},
+		
+	RoomCheck: function(sender) {
+		var roomManagerNode = Pointer_stringify(sender);
+		try {
+			var socket = connection.getSocket(function(socket) {
+				socket.on('disconnect', function() {
+					console.log('Socket disconnected');
+				});
+				socket.on('connect', function() {
+					console.log("Socket Connected");
+				});
+				socket.on('error', function() {
+					console.log('Socket error');
+				});
+			});
+			
+			socket.emit('get-public-rooms', connection.publicRoomIdentifier, function(listOfRooms) {
+				this.listOfRooms = listOfRooms;
+				listOfRooms.forEach(function (room) {
+					SendMessage(roomManagerNode, "RoomFound", JSON.stringify(room));
+				});
+			});
+			
+			SendMessage(roomManagerNode, "RoomCheckComplete", "");
+		}		
+		catch(e) {
+			console.log("Error checking rooms\n" + e);
 		}
-		var match, search = window.location.search;
-		while (match = r.exec(search.substring(1)))
-			params[d(match[1])] = d(match[2]);
-		window.params = params;
 	},
 
-
-	// Interface
-	StartConnection: function (roomId) {
+    OpenRoom: function(sender, roomId, roomSize, isPublic){
 		try {
+			// todo: use UTF8ToString instead of Pointer_stringify
+			var roomManagerNode = Pointer_stringify(sender);
 			var jRoomId = Pointer_stringify(roomId);
-			connection.openOrJoin(jRoomId, function (IsRoomJoined, jRoomId, error) {
-				if (error == 'Room full') {
-					SendMessage(unityNode, "RoomIsFull", jRoomId);
-					return;
+
+			// this doesn't seem to work (with or without 'this.' and 'parseInt')
+			this.connection.maxParticipantsAllowed = parseInt(roomSize);
+
+			connection.checkPresence(jRoomId, function (isRoomExist, roomid) {
+				if (!isRoomExist) {
+					connection.open(roomid, function (isRoomOpened, roomid, error) {
+						if (error == 'Room full') {
+							SendMessage(roomManagerNode, "RoomIsFull", JSON.stringify(roomid));
+							return;
+						}
+						SendMessage(roomManagerNode, "RoomCreated", roomid);
+					});
 				}
 			});
-
-			SendMessage(unityNode, "OnConnectionStarted", jRoomId);
+		}		
+		catch(e) {
+			console.log("Error opening room\n" + e);
 		}
-		catch (e) {
-			console.log("Error starting connection:\n" + e);
-		}
+			
+    },
 
+	JoinRoom: function(sender, roomId) {
+		var roomManagerNode = Pointer_stringify(sender);
+		var jRoomId = Pointer_stringify(roomId);
+		
+		try {
+			connection.checkPresence(jRoomId, function(isRoomExist, roomid){
+				if (isRoomExist) {
+					connection.join(roomid, function (isRoomJoined, roomid, error) {
+						if (error == 'Room full') {
+							SendMessage(roomManagerNode, "RoomIsFull", JSON.stringify(roomid));
+							return;
+						}
+						SendMessage(roomManagerNode, "RoomJoined", JSON.stringify(roomid));
+					});
+				}
+				else{
+					SendMessage(roomManagerNode, "RoomNotFound", JSON.stringify(roomId));
+				}
+			});
+		}
+		catch(e) {
+			console.log("Error joining room\n" + e);
+		}
 	},
-
-	CeaseConnection: function () {
+	
+	CeaseConnection : function(){
+		
 		// disconnect with all users
-		connection.getAllParticipants().forEach(function (pid) {
+		connection.getAllParticipants().forEach(function(pid) {
 			connection.disconnectWith(pid);
 		});
 
-		// stop all local streams
-		connection.attachStreams.forEach(function (localStream) {
+		// stop all local cameras
+		connection.attachStreams.forEach(function(localStream) {
 			localStream.stop();
 		});
 
 		// close socket.io connection
 		connection.closeSocket();
+		SendMessage(NetworkNode, "ConnectionClosed", "");
 	},
 
-	SendData: function (params) {
-		try {
+    SendData : function(params){
+		try{
 			var jMsg = Pointer_stringify(params);
 			connection.send(jMsg);
 		}
-		catch (e) {
+		catch(e){
 			console.log("Error sending message\n params:" + stringify(params) + '\n' + e);
 		}
 	},
-
-	/*
+		
 	createOffer: function(userId) {
 		connection.createOffer().then(function(offer) {
 			return connection.setLocalDescription(offer);
@@ -315,105 +342,48 @@ mergeInto(LibraryManager.library, {
 				console.log("offer creation failed:" + reason);
 		});
 	},
-	*/
 
-	StartAudioStream: function (userId) {
-
+    StartAudioStream : function(userId){
+		
 		var jUserId = Pointer_stringify(userId);
-		var isStreaming = false;
+		var foundStream = false;
+		
+		try{
+			
+		Object.keys(connection.streamEvents).forEach(function(streamid) {
+			var event = connection.streamEvents[streamid];
+			if (event.userid === jUserId && event.stream.isAudio) {
+				foundStream = true;
+				var pc = connection.peers[jUserId].peer;
+				
+				//console.log("unmuting stream to " + jUserId);
+				//event.stream.unmute('audio');
 
-
-		try {
-
-			Object.keys(connection.streamEvents).forEach(function (streamid) {
-
-				var event = connection.streamEvents[streamid];
-
-				if (event.userid === jUserId && event.stream.isAudio) {
-
-					//console.log("unmuting " + jUserId);
-					//event.stream.unmute('audio');
-
-
-					var pc = connection.peers[jUserId].peer;
-					console.log("resending audio to " + jUserId);
-
-
-
-					var micOptions = {
-						audio: true,
-						video: false
-					};
-
-					connection.captureUserMedia(function (microphone) {
-						var streamEvent = {
-							type: 'local',
-							stream: microphone,
-							streamid: microphone.id
-						};
-
-						// only use the first found streamevent
-						if (!isStreaming) {
-							connection.onstream(streamEvent);
-							isStreaming = true;
-						}
-
-						connection.dontCaptureUserMedia = true;
-
-						connection.session = {
-							audio: true,
-							video: false,
-							data: true
-						};
-
-						connection.attachStreams.forEach(function (localStream) {
-							//console.log("adding new stream:" + JSON.stringify(localStream));
-							//pc.addStream(localStream);
-
-							streamEvent.stream.getAudioTracks().forEach(function (track) {
-								console.log("adding new track:" + JSON.stringify(track));
-								pc.addTrack(track, localStream);
-							});
-						});
-
-					}, micOptions);
-
-					connection.sdpConstraints.mandatory = {
-						OfferToReceiveAudio: true,
-						OfferToReceiveVideo: false,
-						VoiceActivityDetection: false,
-						IceRestart: true
-					};
-
-					connection.mediaConstraints = {
-						video: false,
-						audio: true
-					};
-
-					connection.peers[jUserId].addStream({
-						data: true,
-						audio: true,
-						oneway: true
-					});
-
-
-					connection.renegotiate(jUserId);
-					console.log("renegotiated connection");
-
-
-				}
-			});
-
-			if (!isStreaming) {
-
-				console.log("sending fresh audio to " + jUserId);
-
-				connection.session = {
+				var micOptions = {
 					audio: true,
-					video: false,
-					data: true
+					video: false
 				};
 
+				connection.captureUserMedia(function(microphone) {
+					var streamEvent = {
+						type: 'local',
+						stream: microphone,
+						streamid: microphone.id
+					};
+					connection.onstream(streamEvent);
+					
+					connection.attachStreams.forEach(function(localStream) {
+						streamEvent.stream.getTracks().forEach(function(track) {
+							console.log("adding new track:" + JSON.stringify(track));
+							pc.addTrack(track, localStream);
+						});
+					});
+		
+				}, micOptions);
+				
+
+				console.log("renegotiating reconnection");
+					
 				connection.sdpConstraints.mandatory = {
 					OfferToReceiveAudio: true,
 					OfferToReceiveVideo: false,
@@ -425,46 +395,73 @@ mergeInto(LibraryManager.library, {
 					video: false,
 					audio: true
 				};
-
+				
 				connection.peers[jUserId].addStream({
 					data: true,
 					audio: true,
 					oneway: true
 				});
+				
+				connection.renegotiate(jUserId);
 			}
+		});
+		
+		if (!foundStream){
+			connection.session = {
+				audio: true,
+				video: false,
+				data: true
+			};
+			
+			connection.sdpConstraints.mandatory = {
+				OfferToReceiveAudio: true,
+				OfferToReceiveVideo: false,
+				VoiceActivityDetection: false,
+				IceRestart: false
+			};
 
+			connection.mediaConstraints = {
+				video: false,
+				audio: true
+			};
+				
+			connection.peers[jUserId].addStream({
+				data: true,
+				audio: true,
+				oneway: true
+			});
 		}
-		catch (e) {
-			console.log("error adding audio stream: " + e);
+		
 		}
+		catch(e){
+			console.log("error adding audio stream");
+		}
+		
+		
+    },
 
-
-	},
-
-	StopAudioStream: function (userId) {
+    StopAudioStream: function(userId){
 		var jUserId = Pointer_stringify(userId);
 
 		connection.streamEvents.selectAll({
 			userid: jUserId,
 			remote: true,
 			isAudio: true
-		}).forEach(function (streamEvent) {
-
-			console.log("muting " + jUserId);
-			//streamEvent.stream.mute('audio');
-
-			streamEvent.stream.getTracks().forEach(function (track) {
+		}).forEach(function(streamEvent) {
+			
+			streamEvent.stream.getTracks().forEach(function(track) {
 				track.stop();
 			});
-
-			streamEvent.stream.getTracks().forEach(function (track) {
+			
+			streamEvent.stream.getTracks().forEach(function(track) {
 				streamEvent.stream.removeTrack(track);
 			});
-
 		});
-
-		//connection.renegotiate(jUserId);
-
-	},
-
+		
+		connection.renegotiate(jUserId);
+		
+    },
+	
+	
+	
 });

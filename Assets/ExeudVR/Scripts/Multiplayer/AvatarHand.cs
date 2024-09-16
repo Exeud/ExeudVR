@@ -11,7 +11,7 @@ namespace ExeudVR
 {
     /// <summary>
     /// Handles interaction events for the avatar's virtual hand. For more information see 
-    /// <para /><see href="https://github.com/willguest/ExeudVR/tree/develop/Documentation/Multiplayer/AvatarHand.md"/>
+    /// <para /><see href="https://github.com/Exeud/ExeudVR/tree/develop/Documentation/Multiplayer/AvatarHand.md"/>
     /// </summary>
     public class AvatarHand : MonoBehaviour
     {
@@ -35,6 +35,7 @@ namespace ExeudVR
             {
                 if (!target)
                 {
+                    Debug.Log("Interaction target expected but not found.");
                     return;
                 }
 

@@ -23,7 +23,7 @@ namespace ExeudVR
 
         static void OnAfterAssemblyReload()
         {
-            TryUpdateWebXRSettings(); 
+            TryUpdateWebXRSettings(true); 
         }
 
         /// <summary>
@@ -48,7 +48,7 @@ namespace ExeudVR
                 }
                 else
                 {
-                    SessionState.SetBool("hasUpdatedSettings", false);
+                    SessionState.SetBool("hasUpdatedSettings", false); 
                 }
 
                 // TODO: assign loader and enable WebXR from here.
@@ -58,8 +58,20 @@ namespace ExeudVR
                 try
                 {
                     EditorBuildSettings.TryGetConfigObject("WebXR.Settings", out WebXRSettings webXRSettings);
+
+                    // Hard-code WebXR Settings
                     webXRSettings.VRRequiredReferenceSpace = WebXRSettings.ReferenceSpaceTypes.local;
                     webXRSettings.VROptionalFeatures = 0;
+                    webXRSettings.ARRequiredReferenceSpace = WebXRSettings.ReferenceSpaceTypes.local;
+                    webXRSettings.AROptionalFeatures = 0;
+
+                    webXRSettings.UseFramebufferScaleFactor = false;
+                    webXRSettings.UseNativeResolution = false;
+                    webXRSettings.FramebufferScaleFactor = 1;
+
+                    webXRSettings.AutoLoadWebXRManager = false;
+                    webXRSettings.AutoLoadWebXRInputSystem = false;
+                    webXRSettings.DisableXRDisplaySubsystem = false;
 
                     EditorUtility.SetDirty(webXRSettings);
                     AssetDatabase.SaveAssetIfDirty(webXRSettings);

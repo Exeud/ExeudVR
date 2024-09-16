@@ -101,7 +101,7 @@ namespace ExeudVR
         }
 
 
-        // Connect new canister functions here
+        // Connect canister functions
 
         public void ICLogin(System.Action<string> cb)
         {

@@ -21,19 +21,21 @@ namespace ExeudVR
     /// to control the character, including jumping and swimming. Connect interaction events to the 
     /// virtual world's collision and data layers. Warning: modifying this without proper knowledge can 
     /// really mess things up.
-    /// <para /><see href="https://github.com/willguest/ExeudVR/tree/develop/Documentation/Controllers/XRController.md"/>
+    /// <para /><see href="https://github.com/Exeud/ExeudVR/tree/develop/Documentation/Controllers/XRController.md"/>
     /// </summary>
     public class XRController : MonoBehaviour
     {
-        public ControllerHand hand;
-
+        [SerializeField] private ControllerHand hand;
         [SerializeField] private bool debugHand;
         [SerializeField] private GameObject CharacterRoot;
 
         [SerializeField] private float MaxInteractionDistance = 15.0f;
-        [SerializeField] private Renderer[] HandRenderers;
+        [SerializeField] private GameObject handModel;
+        [SerializeField] private XRPointer xrPointer;
 
-        [SerializeField] private LayerMask PointerLayerMask;
+        [SerializeField] private Animator anim;
+        [SerializeField] private GameObject handIKAnchor;
+
 
         #region >   Public Variables, Functions and Attributes
 
@@ -51,42 +53,59 @@ namespace ExeudVR
             Trigger,
             Grip
         }
-        public enum Axis2DTypes
-        {
-            Thumbstick, // primary2DAxis
-            Touchpad  // secondary2DAxis
-        }
 
+        // WebXR Actions
         public Action<bool> OnControllerActive;
         public Action<bool> OnHandActive;
         public Action<WebXRHandData> OnHandUpdate;
 
 
-        // flag used by ObjectInterface - used when the hand is bound to an object
-        public bool IsUsingInterface { get; set; }
+        // flag used by ObjectInterface - true when the hand is bound to an object
+        public bool IsUsingInterface { get; private set; }
 
-        // flag set by ControlDynamics - used when the controller is articulating equipment
-        public bool IsControllingObject { get; set; }
+        // flag set by ControlDynamics - true when the controller is articulating equipment
+        public bool IsControllingObject { get; private set; }
 
+
+        // Hand anchor used by rigged body model
         public GameObject HandAnchor
         {
             get { return handIKAnchor; }
             set { handIKAnchor = value; }
         } 
 
+        // Hand model used by ObjectInterface
+        public GameObject HandModel
+        {
+            get { return handModel; }
+            set { handModel = value; }
+        }
+
+        public ControllerHand SetCurrentInterface(bool isControlDelegated, ObjectInterface objInt)
+        {
+            IsUsingInterface = isControlDelegated;
+            currentInterface = objInt;
+            return isControlDelegated ? hand : ControllerHand.NONE;
+        }
+
         public void SetGripPose(string newGripPose)
         {
-            gripPose = newGripPose;
+            gripPose = string.IsNullOrEmpty(newGripPose) ? "holdIt" : newGripPose;
             anim.SetTrigger(gripPose);
         }
 
+        /// <summary>
+        /// Function used in two-handed interaction, allowing 
+        /// this hand to adopt a secondary, object-locked grip.
+        /// </summary>
+        /// <param name="jointIndex"></param>
+        /// <param name="connectedBody"></param>
         public void ModifyJoint(int jointIndex, Rigidbody connectedBody = null)
         {
             attachJoint[jointIndex].connectedBody = connectedBody;
         }
 
         // events, use as hooks for controller button functions
-        //public event BodyController.CursorFocus OnHandFocus;
         public event BodyController.ObjectTrigger OnObjectTrigger;
         public event BodyController.ObjectGrip OnObjectGrip;
 
@@ -97,13 +116,12 @@ namespace ExeudVR
         public delegate void HandInteraction(AvatarHandlingData interactionData);
         public event HandInteraction OnHandInteraction;
 
-        public bool IsVisible { get; private set; }
-
-
         #endregion Public Variables, Functions and Attributes
 
 
         #region >   Private Variables
+
+        private WebXRState xrState = WebXRState.NORMAL;
 
         private float trigger;
         private float squeeze;
@@ -121,36 +139,29 @@ namespace ExeudVR
         private bool controllerActive = false;
         private bool handActive = false;
 
-        private WebXRState xrState = WebXRState.NORMAL;
-
         private FixedJoint[] attachJoint;
 
         private Rigidbody currentNearRigidBody = null;
         private Rigidbody currentFarRigidBody = null;
+
         private ObjectInterface currentInterface;
 
-        private List<ObjectInterface> nearInterfaces = new List<ObjectInterface>();
-        private List<RigidDynamics> nearcontactRigidBodies = new List<RigidDynamics>();
-        private List<RigidDynamics> farcontactRigidBodies = new List<RigidDynamics>();
-
-        [SerializeField] private Animator anim;
-        [SerializeField] private GameObject handIKAnchor;
+        private List<Rigidbody> nearcontactRigidBodies = new List<Rigidbody>();
+        private List<Rigidbody> farcontactRigidBodies = new List<Rigidbody>();
 
         private SharedAsset currentNearSharedAsset;
         private SharedAsset currentFarSharedAsset;
 
-        private GameObject currentObject;
-        private GameObject myPointer;
-
+        private bool isNetworkConnected = false;
         private string prevMeshName = "";
 
+        // Axis trigger thresholds
         float trigThresUp = 0.90f;
         float trigThresDn = 0.10f;
         float gripThresUp = 0.90f;
         float gripThresDn = 0.10f;
-
-        float rightThumbstickThreshold = 0.9f;
-        float thAT = 0.25f;     // thumbstick absolute threshold
+        float thumbThresUp = 0.90f;
+        float thumbThresDn = 0.10f;
 
         private float prevRightThX = 0f;
         private float prevTrig = 0f;
@@ -158,15 +169,12 @@ namespace ExeudVR
 
         private bool touchingButton;
         private bool pointingAtButton;
-
-        private GameObject currentButton;
-
+        private PressableButton currentButton;
 
 
         // Object Handling
         private bool distanceManip = false;
-
-        private string gripPose = "";
+        private string gripPose;
 
         private float actionTick = 0f;
         private float triggerEnterTick = 0f;
@@ -175,8 +183,9 @@ namespace ExeudVR
         private float jumpTick;
         private float seaLevel = -4.5f;
 
-        private Camera vrGuideCam;
-
+        private Camera _camera;
+        private Vector3 defaultPositionOffset;
+        private Quaternion defaultRotationOffset;
 
         #endregion Private Variables
 
@@ -189,6 +198,10 @@ namespace ExeudVR
             WebXRManager.OnXRChange -= OnXRChange;
             WebXRManager.OnControllerUpdate -= OnControllerUpdate;
             WebXRManager.OnHandUpdate -= OnHandUpdateInternal;
+            if (NetworkIO.Instance)
+            {
+                NetworkIO.Instance.OnConnectionChanged -= UpdateConnectionStatus;
+            }
 
             SetControllerActive(false);
             SetHandActive(false);
@@ -204,56 +217,42 @@ namespace ExeudVR
             SetHandActive(false);
         }
 
-#if UNITY_EDITOR || !UNITY_WEBGL
-
-        private void Update()
-        {
-            if (Input.GetKeyDown(KeyCode.G))
-            {
-                if (IsUsingInterface)
-                {
-                    PickupNear();
-                }
-                else
-                {
-                    PickupNear();
-                }
-            }
-            else if (Input.GetKeyDown(KeyCode.H))
-            {
-                DropNear();
-
-            }
-        }
-
-#endif
 
         void Start()
         {
+            defaultPositionOffset = transform.localPosition;
+            defaultRotationOffset = transform.localRotation;
+
             attachJoint = new FixedJoint[] { GetComponents<FixedJoint>()[0], GetComponents<FixedJoint>()[1] };
+            _camera = CharacterRoot.GetComponentInChildren<Camera>();
 
-            myPointer = transform.Find("pointer").gameObject;
-
-            vrGuideCam = CharacterRoot.GetComponentInChildren<Camera>();
+            if (NetworkIO.Instance)
+            {
+                NetworkIO.Instance.OnConnectionChanged += UpdateConnectionStatus;
+            }
 
             if (!debugHand)
             {
-                ToggleRenderers(xrState == WebXRState.VR);
+                SetGripPose("relax");
+                ToggleHandObjects(xrState == WebXRState.VR);
             }
-
             jumpTick = Time.time;
         }
 
 
         void FixedUpdate()
         {
-            // only do this in a webxr session
-            if (xrState != WebXRState.VR && debugHand == false) { return; }
+            if (xrState == WebXRState.NORMAL && !debugHand)
+            {
+                transform.localPosition = ((_camera.transform.right * defaultPositionOffset.x) + (CharacterRoot.transform.up * defaultPositionOffset.y));
+                transform.rotation = Quaternion.Euler(new Vector3(0f, _camera.transform.transform.eulerAngles.y, 0f)) * defaultRotationOffset;
+                return;
+            }
 
             // left stick controls movement
             if (hand == ControllerHand.LEFT)
             {
-                if (Math.Abs(thumbstickX) > thAT || Math.Abs(thumbstickY) > thAT)
+                if (Math.Abs(thumbstickX) > thumbThresDn || Math.Abs(thumbstickY) > thumbThresDn)
                 {
                     MoveVehicleWithJoystick(thumbstickX, thumbstickY, 2.0f);
                 }
@@ -261,13 +260,13 @@ namespace ExeudVR
             // right stick turns in 60 degree steps and forwards-backwards
             else if (hand == ControllerHand.RIGHT)
             {
-                if (Mathf.Abs(thumbstickX) > rightThumbstickThreshold && prevRightThX <= rightThumbstickThreshold)
+                if (Mathf.Abs(thumbstickX) > thumbThresUp && prevRightThX <= thumbThresUp)
                 {
                     RotateVehicleWithJoystick(thumbstickX);
                 }
                 prevRightThX = Mathf.Abs(thumbstickX);
 
-                if (Math.Abs(thumbstickY) > thAT)
+                if (Math.Abs(thumbstickY) > thumbThresDn)
                 {
                     MoveVehicleWithJoystick(0.0f, thumbstickY, 2.0f);
                 }
@@ -278,6 +277,11 @@ namespace ExeudVR
             if (trigVal > trigThresUp && prevTrig <= trigThresUp)
             {
                 PickupFar();
+
+                if (IsUsingInterface)
+                {
+                    UseObjectTrigger(trigVal);
+                }
             }
             else if (trigVal < trigThresDn && prevTrig >= trigThresDn)
             {
@@ -290,19 +294,24 @@ namespace ExeudVR
                     DropFar();
                 }
             }
-            else if (trigVal > trigThresDn && currentInterface != null)
-            {
-                UseObjectTrigger(trigVal);
-            }
 
             // grip for near interaction
             float gripVal = GetAxis(AxisTypes.Grip);
             if (gripVal > gripThresUp && prevGrip <= gripThresUp)
             {
                 PickupNear();
+
+                if (IsUsingInterface)
+                {
+                    UseObjectGrip(true);
+                }
             }
             else if (gripVal < gripThresDn && prevGrip >= gripThresDn)
             {
+                if (IsUsingInterface)
+                {
+                    UseObjectGrip(false);
+                }
                 DropNear();
             }
 
@@ -313,31 +322,29 @@ namespace ExeudVR
 
             if (IsUsingInterface)
             {
-
                 if (GetButtonDown(ButtonTypes.ButtonA))
                 {
-                    AButtonEvent.Invoke(1.0f);
+                    AButtonEvent?.Invoke(1.0f);
                 }
                 else if (GetButtonUp(ButtonTypes.ButtonA))
                 {
-                    AButtonEvent.Invoke(0.0f);
+                    AButtonEvent?.Invoke(0.0f);
                 }
 
                 if (GetButtonDown(ButtonTypes.ButtonB))
                 {
-                    BButtonEvent.Invoke(1.0f);
+                    BButtonEvent?.Invoke(1.0f);
                 }
                 else if (GetButtonUp(ButtonTypes.ButtonB))
                 {
-                    BButtonEvent.Invoke(0.0f);
+                    BButtonEvent?.Invoke(0.0f);
                 }
             }
 
             prevTrig = trigVal;
             prevGrip = gripVal;
 
-            // set pointers
-            PlacePointer();
+            // handle far interaction
             SetActiveFarMesh();
         }
 
@@ -349,6 +356,7 @@ namespace ExeudVR
         {
             TryUpdateButtons();
         }
+
 #endif
 
 
@@ -367,6 +375,7 @@ namespace ExeudVR
                     SetHandActive(false);
                     return;
                 }
+
                 SetControllerActive(false);
                 SetHandActive(true);
 
@@ -402,16 +411,24 @@ namespace ExeudVR
         private void OnXRChange(WebXRState state, int viewsCount, Rect leftRect, Rect rightRect)
         {
             xrState = state;
-            ToggleRenderers(xrState == WebXRState.VR);
+            ToggleHandObjects(xrState == WebXRState.VR);
         }
 
-        private void ToggleRenderers(bool onOrOff)
+        private void UpdateConnectionStatus(bool state)
         {
-            foreach (Renderer r in HandRenderers)
+            isNetworkConnected = state;
+        }
+
+        private void ToggleHandObjects(bool isVR)
+        {
+            // Hide the children
+            for (int t = 0; t < transform.childCount; t++)
             {
-                r.enabled = onOrOff;
+                transform.GetChild(t).gameObject.SetActive(isVR);
             }
-            IsVisible = onOrOff;
+
+            // Toggle near interaction triggers
+            GetComponent<CapsuleCollider>().enabled = isVR;
         }
 
         #endregion State Functions
@@ -591,7 +608,7 @@ namespace ExeudVR
         {
             float x = xax * Time.deltaTime;
             float z = yax * Time.deltaTime;
-            Camera referenceCam = vrGuideCam;
+            Camera referenceCam = _camera;
 
             // get camera-aligned directions
             Vector3 worldForward = CharacterRoot.transform.InverseTransformDirection(referenceCam.transform.forward);
@@ -614,11 +631,11 @@ namespace ExeudVR
 
             if (value > 0)
             {
-                CharacterRoot.transform.RotateAround(CharacterRoot.transform.position, Vector3.up, 60);
+                CharacterRoot.transform.RotateAround(_camera.transform.position, Vector3.up, 60);
             }
             else
             {
-                CharacterRoot.transform.RotateAround(CharacterRoot.transform.position, Vector3.up, -60);
+                CharacterRoot.transform.RotateAround(_camera.transform.position, Vector3.up, -60);
             }
         }
 
@@ -651,10 +668,10 @@ namespace ExeudVR
             // button actions take priority
             if (touchingButton || pointingAtButton)
             {
-                if (currentButton.TryGetComponent(out PressableButton pba) && (Time.time - actionTick) > 0.5f)
+                if (currentButton && (Time.time - actionTick) > 0.5f)
                 {
                     actionTick = Time.time;
-                    pba.ButtonPressed.Invoke();
+                    currentButton.ButtonPressed?.Invoke();
                 }
                 return;
             }
@@ -698,9 +715,9 @@ namespace ExeudVR
         {
             if (touchingButton || pointingAtButton)
             {
-                if (currentButton.TryGetComponent(out PressableButton pba))
+                if (currentButton)
                 {
-                    pba.ButtonReleased.Invoke();
+                    currentButton.ButtonReleased?.Invoke();
                 }
                 return;
             }
@@ -745,7 +762,7 @@ namespace ExeudVR
 
         private void BeginAttractFar(Rigidbody targetRB)
         {
-            if (targetRB.gameObject.TryGetComponent(out Grabbable grabber))
+            if (targetRB.gameObject.TryGetComponent(out Wieldable grabber))
             {
                 currentFarRigidBody.useGravity = false;
                 attachJoint[1].connectedBody = null;
@@ -753,7 +770,7 @@ namespace ExeudVR
             }
         }
 
-        public void AttractFar(Grabbable sender, string pose)
+        public void AttractFar(Wieldable sender, string pose)
         {
             if (currentFarRigidBody && prevGrip > 0.8f)
             {
@@ -783,12 +800,12 @@ namespace ExeudVR
 
         private void UseObjectGrip(bool state)
         {
-            OnObjectGrip?.Invoke(hand, currentInterface.gameObject, state);
+            OnObjectGrip?.Invoke(currentInterface, state);
         }
 
         private void UseObjectTrigger(float triggerValue)
         {
-            OnObjectTrigger?.Invoke(currentInterface.gameObject, triggerValue);
+            OnObjectTrigger?.Invoke(currentInterface, triggerValue);
         }
 
 
@@ -811,7 +828,7 @@ namespace ExeudVR
 
             GameObject currentNearObject = currentNearRigidBody.gameObject;
 
-            if (currentNearObject.TryGetComponent(out Grabbable g))
+            if (currentNearObject.TryGetComponent(out Wieldable g))
             {
                 if (!g.CanBeGrabbed(hand, transform))
                 {
@@ -833,16 +850,10 @@ namespace ExeudVR
                 currentNearRigidBody.isKinematic = false;
 
                 // set default grip pose
-                SetGripPose(string.IsNullOrEmpty(gripPose) ? "holdIt" : gripPose);
+                SetGripPose(gripPose == "relax" ? "holdIt" : gripPose);
             }
 
-            if (currentNearObject.TryGetComponent(out ObjectInterface objInt))
-            {
-                currentInterface = objInt;
-                UseObjectGrip(true);
-            }
-
-            // determine if controlling a fixed object
+            // check if controlling a fixed object
             if (currentNearObject.GetComponent<ControlDynamics>())
             {
                 IsControllingObject = true;
@@ -855,12 +866,13 @@ namespace ExeudVR
                 {
                     currentNearSharedAsset = sharedAsset;
                     currentNearSharedAsset.IsBeingHandled = true;
+
                     InvokeAcquisitionEvent(currentNearSharedAsset.Id, currentNearObject.transform, ManipulationDistance.Near);
                 }
                 else
                 {
-                    // asset is being used by someone else
-                    Debug.Log("This object is being used by someone else");
+                    // asset is being being used
+                    Debug.Log("This object is in use");
                 }
             }
         }
@@ -869,7 +881,7 @@ namespace ExeudVR
         {
             if (!currentNearRigidBody) return;
 
-            if (currentNearRigidBody.gameObject.TryGetComponent(out Grabbable g))
+            if (currentNearRigidBody.gameObject.TryGetComponent(out Wieldable g))
             {
                 if (g.Disengage(hand, transform))
                 {
@@ -879,6 +891,7 @@ namespace ExeudVR
 
             ThrowData newThrow;
             attachJoint[0].connectedBody = null;
+            nearcontactRigidBodies.Clear();
 
             // local throw
             if (currentNearRigidBody.gameObject.TryGetComponent(out RigidDynamics rigidDynamics))
@@ -897,17 +910,7 @@ namespace ExeudVR
 
             currentNearRigidBody.AddForce(newThrow.LinearForce, ForceMode.Impulse);
             currentNearRigidBody.AddTorque(newThrow.AngularForce, ForceMode.Impulse);
-
-            if (currentInterface != null)
-            {
-                OnObjectGrip?.Invoke(hand, currentInterface.gameObject, false);
-                if (!nearInterfaces.Contains(currentInterface))
-                {
-                    //OnHandFocus(currentInterface.gameObject, false);
-                }
-
-                currentInterface = null;
-            }
+            
 
             if (IsControllingObject)
             {
@@ -922,14 +925,16 @@ namespace ExeudVR
                 currentNearSharedAsset.IsBeingHandled = false;
                 currentNearSharedAsset = null;
             }
+
+            // clear grip pose
+            SetGripPose("relax");
             currentNearRigidBody = null;
         }
 
 
-        private bool InvokeAcquisitionEvent(string target, Transform interactionTransform, ManipulationDistance distance)
+        private void InvokeAcquisitionEvent(string target, Transform interactionTransform, ManipulationDistance distance)
         {
-            // check for shared asset id
-            if (!string.IsNullOrEmpty(target))
+            if (!string.IsNullOrEmpty(target) && isNetworkConnected)
             {
                 AcquireData newAcquisition = new AcquireData
                 {
@@ -940,19 +945,13 @@ namespace ExeudVR
 
                 AvatarHandlingData interactionEvent = BuildEventFrame(target, distance, AvatarInteractionEventType.AcquireData, newAcquisition, null);
                 OnHandInteraction?.Invoke(interactionEvent);
-                return true;
-            }
-            else
-            {
-                return false;
             }
         }
 
 
-        private bool InvokeReleaseEvent(string target, GameObject interactionObject, ManipulationDistance distance, ThrowData throwData)
+        private void InvokeReleaseEvent(string target, GameObject interactionObject, ManipulationDistance distance, ThrowData throwData)
         {
-            // check for shared asset id
-            if (!string.IsNullOrEmpty(target))
+            if (!string.IsNullOrEmpty(target) && isNetworkConnected)
             {
                 ReleaseData newRelease = new ReleaseData
                 {
@@ -963,17 +962,11 @@ namespace ExeudVR
                 };
 
                 AvatarHandlingData interactionEvent = BuildEventFrame(target, distance, AvatarInteractionEventType.ReleaseData, null, newRelease);
-                OnHandInteraction.Invoke(interactionEvent);
-                return true;
-            }
-            else
-            {
-                return false;
+                OnHandInteraction?.Invoke(interactionEvent);
             }
         }
 
-        private AvatarHandlingData BuildEventFrame(string targetId, ManipulationDistance distance,
-            AvatarInteractionEventType eventType, AcquireData acqDataFrame = null, ReleaseData relDataFrame = null)
+        private AvatarHandlingData BuildEventFrame(string targetId, ManipulationDistance distance, AvatarInteractionEventType eventType, AcquireData acqDataFrame = null, ReleaseData relDataFrame = null)
         {
             AvatarHandlingData eventFrame = new AvatarHandlingData
             {
@@ -991,42 +984,36 @@ namespace ExeudVR
         #endregion Interaction Functions
 
 
-        #region >   Low-Level Interaction Methods
+        #region >   Low-Level Interaction
 
         private void SetActiveFarMesh()
         {
+            GameObject currentObject = xrPointer.PlacePointer();
+
             // only active when there is a focused object
             if (currentObject != null)
             {
                 string meshName = currentObject.name;
-                int layer = currentObject.layer;
 
-                // layer-dependent actions
-                if (layer == 10 || layer == 15)         //  interactable objects or tools
+                if (currentObject.layer >= 9)
                 {
                     pointingAtButton = false;
                     currentButton = null;
 
-                    // must be solid and not near-only interaction
-                    if (currentObject.GetComponent<RigidDynamics>() && !GetComponent<ControlDynamics>())
+                    if (currentObject.GetComponent<RigidDynamics>())
                     {
                         if (meshName != prevMeshName)
                         {
                             farcontactRigidBodies.Clear();
-                            farcontactRigidBodies.Add(currentObject.GetComponent<RigidDynamics>());
+                            farcontactRigidBodies.Add(currentObject.GetComponent<Rigidbody>());
                         }
-
-                        // set pointer appearance for heavy objects
-                        // ...
                     }
-                }
-                else if (layer == 12)       // buttons
-                {
-                    pointingAtButton = true;
-                    currentButton = currentObject;
 
-                    // set pointer appearance for buttons
-                    // ...
+                    if (currentObject.TryGetComponent(out PressableButton pb))
+                    {
+                        pointingAtButton = true;
+                        currentButton = pb;
+                    }
                 }
                 else
                 {
@@ -1048,106 +1035,62 @@ namespace ExeudVR
                 }
                 pointingAtButton = false;
                 currentButton = null;
-
-                // set default pointer appearance 
-                // ...
             }
         }
 
         void OnTriggerEnter(Collider other)
         {
+            // only in VR
+            if (xrState == WebXRState.NORMAL && !debugHand) return;
             if ((Time.time - triggerEnterTick) < 0.1f) return;
-            switch (other.gameObject.layer)
+
+            if (other.gameObject.layer >= 9)
             {
-                case 12:  // UI
-                    {
-                        touchingButton = true;
-                        currentButton = other.gameObject;
+                if (other.gameObject.TryGetComponent(out PressableButton pb) &&
+                    (Time.time - triggerEnterTick) > 0.1f)
+                {
+                    touchingButton = true;
+                    currentButton = pb;
+                    pb.ButtonPressed?.Invoke();
+                }
 
-                        if (other.gameObject.TryGetComponent(out PressableButton pb) &&
-                            (Time.time - triggerEnterTick) > 0.1f)
-                        {
-                            triggerEnterTick = Time.time;
-                            pb.ButtonPressed?.Invoke();
-                        }
-                        triggerEnterTick = Time.time;
-                        break;
-                    }
-                case 10:    // objects
-                case 14:    // wearables
-                case 15:    // tools
+                if (other.gameObject.GetComponent<RigidDynamics>())
+                {
+                    var rb = other.gameObject.GetComponent<Rigidbody>();
+                    if (!nearcontactRigidBodies.Contains(rb))
                     {
-                        if (other.gameObject.TryGetComponent(out ObjectInterface oi))
-                        {
-                            if (!nearInterfaces.Contains(oi))
-                            {
-                                nearInterfaces.Add(oi);
-                                //OnHandFocus?.Invoke(gameObject, true);
-                            }
-                        }
-
-                        if (other.gameObject.TryGetComponent(out RigidDynamics rd))
-                        {
-                            if (!nearcontactRigidBodies.Contains(rd))
-                            {
-                                nearcontactRigidBodies.Add(rd);
-                            }
-                        }
-                        triggerEnterTick = Time.time;
-                        break;
+                        nearcontactRigidBodies.Add(rb);
                     }
-                case 9:     // furniture
-                    break;
-                default:
-                    break;
+                }
+                triggerEnterTick = Time.time;
             }
         }
 
         void OnTriggerExit(Collider other)
         {
+            // only in VR
+            if (xrState == WebXRState.NORMAL && !debugHand) return;
             if ((Time.time - triggerExitTick) < 0.1f) return;
-            switch (other.gameObject.layer)
+
+            if (other.gameObject.layer >= 9)
             {
-                case 12:  // UI
-                    {
-                        currentButton = null;
-                        touchingButton = false;
+                if (other.gameObject.TryGetComponent(out PressableButton pb) &&
+                    (Time.time - triggerEnterTick) > 0.2f)
+                {
+                    currentButton = null;
+                    touchingButton = false;
+                    pb.ButtonReleased?.Invoke();
+                }
 
-                        if (other.gameObject.TryGetComponent(out PressableButton pb) &&
-                            (Time.time - triggerEnterTick) > 0.2f)
-                        {
-                            pb.ButtonReleased?.Invoke();
-                        }
-                        triggerExitTick = Time.time;
-                        break;
-                    }
-                case 10:    // objects
-                case 14:    // wearables
-                case 15:    // tools
+                if (other.gameObject.TryGetComponent(out RigidDynamics rd))
+                {
+                    var rb = other.gameObject.GetComponent<Rigidbody>();
+                    if (nearcontactRigidBodies.Contains(rb))
                     {
-                        if (other.gameObject.TryGetComponent(out ObjectInterface oi))
-                        {
-                            if (nearInterfaces.Contains(oi))
-                            {
-                                nearInterfaces.Remove(oi);
-                                //OnHandFocus?.Invoke(other.gameObject, false);
-                            }
-                        }
-
-                        if (other.gameObject.TryGetComponent(out RigidDynamics rd))
-                        {
-                            if (nearcontactRigidBodies.Contains(rd))
-                            {
-                                nearcontactRigidBodies.Remove(rd);
-                            }
-                        }
-                        triggerExitTick = Time.time;
-                        break;
+                        nearcontactRigidBodies.Remove(rb);
                     }
-                case 9:     // furniture
-                    break;
-                default:
-                    break;
+                }
+                triggerExitTick = Time.time;
             }
         }
 
@@ -1158,7 +1101,7 @@ namespace ExeudVR
             float minDistance = MaxInteractionDistance;
             float distance = 0.0f;
 
-            foreach (RigidDynamics contactBody in farcontactRigidBodies)
+            foreach (Rigidbody contactBody in farcontactRigidBodies)
             {
                 distance = (contactBody.gameObject.transform.position - transform.position).sqrMagnitude;
 
@@ -1175,44 +1118,14 @@ namespace ExeudVR
         private Rigidbody GetNearRigidBody()
         {
             Rigidbody nearestRigidBody = null;
-            foreach (RigidDynamics contactBody in nearcontactRigidBodies)
+            foreach (Rigidbody contactBody in nearcontactRigidBodies)
             {
                 nearestRigidBody = contactBody.GetComponent<Rigidbody>();
             }
             return nearestRigidBody;
         }
 
-        private void PlacePointer()
-        {
-            Vector3 pointerPos = CastControllerRay();
-            myPointer.transform.position = pointerPos;
-            myPointer.transform.rotation = transform.rotation;
-            myPointer.transform.GetChild(0).transform.rotation = transform.rotation;
-        }
-
-        private Vector3 CastControllerRay()
-        {
-            Vector3 rayStart = gameObject.transform.position + (gameObject.transform.forward * 0.3f);
-            Ray handRay = new Ray(rayStart, gameObject.transform.forward);
-            RaycastHit newHit = new RaycastHit();
-
-            Vector3 currentHitPoint = gameObject.transform.position + (gameObject.transform.forward * -0.125f);
-
-            if (Physics.Raycast(handRay, out newHit, MaxInteractionDistance, PointerLayerMask))
-            {
-                currentObject = newHit.collider.gameObject;
-                currentHitPoint = newHit.point + (handRay.direction.normalized * -0.02f);
-            }
-            else
-            {
-                currentObject = null;
-            }
-            return currentHitPoint;
-        }
-
-        #endregion Low-Level Interaction Methods
-
+        #endregion Low-Level Interaction
 
     }
-
 }
