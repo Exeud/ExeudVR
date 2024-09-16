@@ -6,6 +6,7 @@
 
 using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using UnityEngine;
 
@@ -13,11 +14,11 @@ namespace ExeudVR
 {
     /// <summary>
     /// This class is responsible for managing rooms in a multiplayer game. It handles room creation, joining, and updating room information.
-    /// <para /><see href="https://github.com/willguest/ExeudVR/tree/develop/Documentation/Multiplayer/RoomManager.md"/>
+    /// <para /><see href="https://github.com/Exeud/ExeudVR/tree/develop/Documentation/Multiplayer/RoomManager.md"/>
     /// </summary>
     public class RoomManager : MonoBehaviour
     {
-        private RoomObject[] rooms;
+        private List<RoomObject> rooms;
         private string currentRoom;
 
         // text assets for name generation
@@ -51,6 +52,7 @@ namespace ExeudVR
             randomSeed = new System.Random();
             fourLW = Resources.Load("4LetterWords") as TextAsset;
             fiveLW = Resources.Load("5LetterWords") as TextAsset;
+            rooms = new List<RoomObject>();
         }
 
 
@@ -140,11 +142,12 @@ namespace ExeudVR
         private string GetAvailableRoom()
         {
             string availableRoom = string.Empty;
-            for (int r = 0; r < rooms.Length; r++)
+            for (int r = 0; r < rooms.Count; r++)
             {
                 if ((int)rooms[r].Participants.Length < (int)rooms[r].MaxParticipantsAllowed)
                 {
-                    availableRoom = rooms[r].Sessionid;
+                    availableRoom = rooms[r].SessionId;
+                    Debug.Log("Available room found: " + availableRoom);
                 }
             }
             return availableRoom;
@@ -156,6 +159,11 @@ namespace ExeudVR
             {
                 OpenOrJoinRoom();
             }
+        }
+
+        private void RoomCheckFailed(string errorMessage)
+        {
+            Debug.Log("Room check failed: " + errorMessage);
         }
 
         private void RoomCreated(string message)
@@ -181,24 +189,37 @@ namespace ExeudVR
             Debug.Log("Room is full");
         }
 
+        private void RoomNotFound(string roomId)
+        {
+            Debug.Log("Room could not be found: " + roomId);
+            
+            // check for an remove bad room
+            for (int r = 0; r < rooms.Count; r++)
+            {
+                if (rooms[r].SessionId == roomId)
+                {
+                    rooms.RemoveAt(r);
+                    Debug.Log("Scrubbed room: " + roomId);
+                }
+            }
+
+            OpenOrJoinRoom();
+        }
+
+
         private void RoomFound(string message)
         {
             RoomObject newRoom = JsonConvert.DeserializeObject<RoomObject>(message);
             bool roomExists = false;
-            if (rooms == null)
-            {
-                rooms = new RoomObject[0];
-            }
 
             // If room already exists, update it
-            for (int r = 0; r < rooms.Length; r++)
+            for (int r = 0; r < rooms.Count; r++)
             {
-                RoomObject room = rooms[r];
-
-                if (room.Sessionid == newRoom.Sessionid)
+                if (rooms[r].SessionId == newRoom.SessionId)
                 {
-                    // room already exists
                     roomExists = true;
+
+                    RoomObject room = rooms[r];
                     room.Owner = newRoom.Owner;
                     room.Participants = newRoom.Participants;
                     room.MaxParticipantsAllowed = newRoom.MaxParticipantsAllowed;
@@ -209,8 +230,8 @@ namespace ExeudVR
             // Extend array with new room
             if (!roomExists)
             {
-                Array.Resize(ref rooms, rooms.Length + 1);
-                rooms[rooms.Length - 1] = newRoom;
+                rooms.Add(newRoom);
+                Debug.Log("Room found: " + newRoom.SessionId);
             }
         }
 

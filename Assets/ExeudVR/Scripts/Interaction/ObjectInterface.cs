@@ -5,6 +5,7 @@
  */
 
 using System.Collections;
+using System.ComponentModel.Design;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -18,7 +19,7 @@ namespace ExeudVR
 
     /// <summary>
     /// A simplified version of 'Grabbable', for single handed interaction only. For more information 
-    /// <see href="https://github.com/willguest/ExeudVR/tree/develop/Documentation/Interaction/ObjectInterface.md"/>
+    /// <see href="https://github.com/Exeud/ExeudVR/tree/develop/Documentation/Interaction/ObjectInterface.md"/>
     /// </summary>
     public class ObjectInterface : MonoBehaviour
     {
@@ -34,12 +35,13 @@ namespace ExeudVR
 
         private Transform previousParent;
         private GameObject currentManipulator;
+        private ControllerHand activeHand;
 
         private float triggerEnterTick = 0f;
         private float triggerExitTick = 0f;
 
-        [SerializeField] private bool IsBeingUsed;
-        [SerializeField] private bool IsBeingHeld;
+        private bool IsBeingUsed;
+        private bool IsBeingHeld;
 
         public void ToggleActivation(GameObject manipulator, bool state)
         {
@@ -122,12 +124,14 @@ namespace ExeudVR
                 if (xrctrl.IsUsingInterface) return false;
                 if (xrctrl.IsControllingObject) return false;
 
+                activeHand = xrctrl.SetCurrentInterface(true, this);
+
                 Transform activeControlPose;
-                if (xrctrl.hand == ControllerHand.LEFT && controlPoseLeft != null)
+                if (activeHand == ControllerHand.LEFT && controlPoseLeft != null)
                 {
                     activeControlPose = controlPoseLeft;
                 }
-                else if (xrctrl.hand == ControllerHand.RIGHT && controlPoseRight != null)
+                else if (activeHand == ControllerHand.RIGHT && controlPoseRight != null)
                 {
                     activeControlPose = controlPoseRight;
                 }
@@ -144,8 +148,8 @@ namespace ExeudVR
                     xrctrl.SetGripPose(gripPose);
                 }
 
-                xrctrl.SetCurrentInterface(true, this);
-                currentManipulator = manipulator.transform.Find("model").gameObject;
+                
+                currentManipulator = xrctrl.HandModel;
 
                 // disable hand colliders
                 foreach (CapsuleCollider cc in currentManipulator.GetComponentsInChildren<CapsuleCollider>())
@@ -177,7 +181,7 @@ namespace ExeudVR
             if (previousParent.TryGetComponent(out XRController xrc))
             {
                 xrc.SetGripPose("relax");
-                xrc.SetCurrentInterface(false, null);
+                activeHand = xrc.SetCurrentInterface(false, null);
 
                 StartCoroutine(LerpToControlPose(currentManipulator, previousParent,
                     Vector3.zero, Quaternion.identity, 0.2f));

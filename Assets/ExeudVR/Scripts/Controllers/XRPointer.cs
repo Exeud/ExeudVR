@@ -9,8 +9,7 @@ namespace ExeudVR
         [SerializeField] private Transform PointerLine;
 
         // 'RingLock' is an experimental idea for having a wider selection area at a greater distance.
-        // Meant for devs at this point, it might be introduced in a later version.
-
+        // Might be introduced in a later version.
         //[SerializeField] private GameObject PointerRing;
 
         private GameObject currentObject;

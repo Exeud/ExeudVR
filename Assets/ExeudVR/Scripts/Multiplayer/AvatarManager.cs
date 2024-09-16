@@ -13,7 +13,7 @@ namespace ExeudVR
 {
     /// <summary>
     /// Handles the visualisation of the avatars, and receives messages about network events.
-    /// <para /><see href="https://github.com/willguest/ExeudVR/tree/develop/Documentation/Multiplayer/AvatarManager.md"/>
+    /// <para /><see href="https://github.com/Exeud/ExeudVR/tree/develop/Documentation/Multiplayer/AvatarManager.md"/>
     /// </summary>
     public class AvatarManager : MonoBehaviour
     {

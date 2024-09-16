@@ -11,12 +11,18 @@ namespace ExeudVR
 {
     /// <summary>
     /// Replaces object when they fall out of the scene and hit the 'Planes of Destruction'. 
-    /// <see href="https://github.com/willguest/ExeudVR/tree/develop/Documentation/Managers/Respawn.md"/>
+    /// <see href="https://github.com/Exeud/ExeudVR/tree/develop/Documentation/Managers/Respawn.md"/>
     /// </summary>
     public class Respawn : MonoBehaviour
     {
         [SerializeField] private Transform DefaultRespawnPose;
         [SerializeField] private GameObject characterRoot;
+        private Vector3 charStartPos;
+
+        private void Awake()
+        {
+            charStartPos = characterRoot.transform.localPosition;
+        }
 
         void OnTriggerEnter(Collider col)
         {
@@ -30,7 +36,7 @@ namespace ExeudVR
             {
                 ReplaceCharacter(respawnObject);
             }
-            else if (respawnObject.layer != 15) // skip tools for now, because of hand glitch
+            else if (!respawnObject.name.ToLower().Contains("hand")) // skip hands
             {
                 ReplaceObject(respawnObject);
             }
@@ -77,7 +83,7 @@ namespace ExeudVR
             characterRoot.GetComponent<Rigidbody>().velocity = Vector3.zero;
             characterRoot.GetComponent<Rigidbody>().angularVelocity = Vector3.zero;
 
-            characterRoot.transform.position = Vector3.zero + Vector3.up * 1.5f;
+            characterRoot.transform.position = characterRoot.transform.parent.position + charStartPos;
             characterRoot.transform.rotation = Quaternion.identity;
             
         }

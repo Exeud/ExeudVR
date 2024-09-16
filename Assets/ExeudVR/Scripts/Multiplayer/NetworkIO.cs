@@ -15,7 +15,7 @@ namespace ExeudVR
 {
     /// <summary>
     /// The main entry point for P2P network communication. 
-    /// <para /><see href="https://github.com/willguest/ExeudVR/tree/develop/Documentation/Multiplayer/NetworkIO.md"/>
+    /// <para /><see href="https://github.com/Exeud/ExeudVR/tree/develop/Documentation/Multiplayer/NetworkIO.md"/>
     /// </summary>
     public class NetworkIO : MonoBehaviour
     {
@@ -32,14 +32,23 @@ namespace ExeudVR
         [DllImport("__Internal")]
         private static extern void ConfigureAudio();
 
-        public delegate void NetworkUserEvent(string connectionStatus, string userId, string payload);
+        public enum ConnectionState
+        {
+           NotStarted   = 0,
+           Matchmaking  = 1,
+           Connected    = 2,
+           Disconnected = 3
+        }
+
+        private ConnectionState _connectionState;
+
+        public delegate void NetworkUserEvent(ConnectionState state, string userId, string payload);
         public event NetworkUserEvent OnNetworkChanged;
 
         // interface
-        public float NetworkUpdateFrequency { get; private set; }
-        public bool ReadyFlag { get; set; }
-        public string CurrentUserId { get; private set; }
-        public bool IsConnected { get; private set; }
+        //public float NetworkUpdateFrequency { get; private set; }
+        //public bool IsConnected { get; private set; }
+
 
         // inspector objects
         [SerializeField] private string SignalingServerUrl = "https://rtcmulticonnection-sockets.herokuapp.com:443/";
@@ -53,8 +62,9 @@ namespace ExeudVR
         private static List<string> connectedUsers;
         private List<string> previousOwnIds;
 
+        private bool ReadyFlag;
         private bool readyToReceive = false;
-        private bool WaitingForOthers = false;
+        private bool matchmaking = false;
         
         // events
         public delegate void ConnectionEvent(bool connectionState);
@@ -65,7 +75,7 @@ namespace ExeudVR
 
         private float connectionStartTick = 0;
 
-        private string myStatus;
+        private string CurrentUserId;
         private string userInfo;
         private bool networkUpdateReady = false;
 
@@ -79,7 +89,7 @@ namespace ExeudVR
             else
             {
                 _instance = this;
-                //DontDestroyOnLoad(this.gameObject); // option to keep between scenes
+                //DontDestroyOnLoad(this.gameObject); // uncomment to keep between scenes
             }
         }
 
@@ -93,7 +103,6 @@ namespace ExeudVR
             connectionIndicator.material.EnableKeyword("_EMISSION");
             StartCoroutine(FadeToColour(connectionIndicator, Color.gray, 1.0f));
 
-            myStatus = "Awake";
             CurrentUserId = "";
             userInfo = "";
             networkUpdateReady = true;
@@ -110,7 +119,7 @@ namespace ExeudVR
             if (networkUpdateReady)
             {
                 networkUpdateReady = false;
-                OnNetworkChanged?.Invoke(myStatus, CurrentUserId, userInfo);
+                OnNetworkChanged?.Invoke(_connectionState, CurrentUserId, userInfo);
             }
         }
 
@@ -125,7 +134,10 @@ namespace ExeudVR
 
         public void OpenJoin()
         {
-            roomManager.JoinAnyAvailableRoom();
+            if (_connectionState != ConnectionState.NotStarted)
+            {
+                roomManager.JoinAnyAvailableRoom();
+            }
         }
 
         public void CloseRTC()
@@ -152,16 +164,16 @@ namespace ExeudVR
         private void CloseConnection()
         {
             readyToReceive = false;
-            IsConnected = false;
-            WaitingForOthers = false;
+            matchmaking = false;
 
             connectedUsers.Clear();
-            OnConnectionChanged.Invoke(false);
+            OnConnectionChanged?.Invoke(false);
 
             StartCoroutine(FadeToColour(connectionIndicator, Color.red, 2f));
             AvatarManager.Instance.ResetScene();
 
-            if (Application.platform != RuntimePlatform.WindowsEditor)
+            if (Application.platform != RuntimePlatform.WindowsEditor && 
+                _connectionState != ConnectionState.NotStarted)
             {
                 CeaseConnection();
             }
@@ -173,8 +185,7 @@ namespace ExeudVR
             {
                 PrimeConnection(gameObject.name, SignalingServerUrl, roomManager.MaxPeers);
             }
-
-            Debug.Log("Connection was reset");
+            Debug.Log("WebRTC Connection closed: " + message);
         }
 
         private void OnFinishedLoadingRTC(string message)
@@ -197,8 +208,8 @@ namespace ExeudVR
                 return;
             }
 
-            myStatus = "Started";
-            WaitingForOthers = true;
+            _connectionState = ConnectionState.Matchmaking;
+            matchmaking = true;
             networkUpdateReady = true;
 
             Debug.Log("WebRTC connection ready.");
@@ -281,11 +292,11 @@ namespace ExeudVR
             }
 
             StartCoroutine(FadeToColour(connectionIndicator, Color.green, 2f));
+            OnConnectionChanged?.Invoke(true);
 
-            myStatus = "Connected";
-            IsConnected = true;
+            _connectionState = ConnectionState.Connected;
             ReadyFlag = true;
-            WaitingForOthers = false;
+            matchmaking = false;
 
             OnJoinedRoom.Invoke(CurrentUserId);
             networkUpdateReady = true;
@@ -304,7 +315,8 @@ namespace ExeudVR
                 ConnectionData ddata = JsonConvert.DeserializeObject<ConnectionData>(message);
 
                 DeleteAvatar(ddata.Userid);
-                myStatus = "Disconnected";
+
+                _connectionState = ConnectionState.Disconnected;
                 networkUpdateReady = true;
             }
             catch (Exception e)
@@ -321,7 +333,7 @@ namespace ExeudVR
                 if (connectedUsers.Count < 1)
                 {                
                     StartCoroutine(FadeToColour(connectionIndicator, Color.yellow, 1.0f));
-                    myStatus = "Waiting for others";
+                    _connectionState = ConnectionState.Matchmaking;
                 }
             }
 

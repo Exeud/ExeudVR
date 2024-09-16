@@ -581,7 +581,7 @@ namespace ExeudVR
         public Session Session { get; set; }
 
         [JsonProperty("sessionid")]
-        public string Sessionid { get; set; }
+        public string SessionId { get; set; }
 
         [JsonProperty("isRoomFull")]
         public bool IsRoomFull { get; set; }

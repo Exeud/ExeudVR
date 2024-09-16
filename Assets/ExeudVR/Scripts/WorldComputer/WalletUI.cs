@@ -23,14 +23,6 @@ namespace ExeudVR
             UpdateScreenMessage("Initialising...");
         }
 
-        void Update()
-        {
-            if (Input.GetKeyUp(KeyCode.ScrollLock))
-            {
-                RequestCoinFromFund();
-            }
-        }
-
         /// <summary>
         /// Entry point for requesting a token from the ledger canister.
         /// </summary>

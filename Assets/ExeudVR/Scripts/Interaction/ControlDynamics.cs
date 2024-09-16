@@ -27,7 +27,7 @@ namespace ExeudVR
     /// This component is used to control objects with user interaction. An attached collider, when contacting 
     /// any of the control event sensors, will emit the relevant control effect. 
     /// e.g. for user interfaces, switches or other jointed objects. For more information 
-    /// <see href="https://github.com/willguest/ExeudVR/tree/develop/Documentation/Interaction/ControlDynamics.md"/>
+    /// <see href="https://github.com/Exeud/ExeudVR/tree/develop/Documentation/Interaction/ControlDynamics.md"/>
     /// </summary>
     [RequireComponent(typeof(Collider))]
     public class ControlDynamics : MonoBehaviour

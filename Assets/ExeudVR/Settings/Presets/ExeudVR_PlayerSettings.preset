@@ -2442,7 +2442,7 @@ Preset:
     objectReference: {fileID: 0}
   - target: {fileID: 0}
     propertyPath: webGLTemplate
-    value: PROJECT:ICVR
+    value: PROJECT:ExeudVR
     objectReference: {fileID: 0}
   - target: {fileID: 0}
     propertyPath: webGLAnalyzeBuildSize

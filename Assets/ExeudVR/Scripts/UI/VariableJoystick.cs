@@ -8,6 +8,7 @@ public class VariableJoystick : JoystickBase
 
     [SerializeField] private float moveThreshold = 1;
     [SerializeField] private JoystickTypeB joystickType = JoystickTypeB.Fixed;
+    [SerializeField] private bool forceVisibility = false;
 
     protected override void Start()
     {
@@ -17,8 +18,7 @@ public class VariableJoystick : JoystickBase
 
     public void UpdateJoystickVisibility()
     {
-        bool showJS = (PlatformManager.Instance.IsMobile && PlatformManager.Instance.XrState == XRState.NORMAL);
-        background.gameObject.SetActive(showJS);
+        background.gameObject.SetActive(PlatformManager.Instance.XrState == XRState.NORMAL);
     }
 
     public override void OnPointerDown(PointerEventData eventData)

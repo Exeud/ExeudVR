@@ -30,7 +30,7 @@ namespace ExeudVR
         [Tooltip("Crosshair reference. See sister GameObject")]
         [SerializeField] private CentreCrosshair crosshair;
 
-        
+
         // Private Variables
         private Vector2 hotspot = new Vector2(10, 5);
         private readonly CursorMode cMode = CursorMode.ForceSoftware;
@@ -38,10 +38,16 @@ namespace ExeudVR
         private GameObject focusedObject;
         private XRState xrState;
 
+        private int GetLaterInt(string layerName)
+        {
+            return LayerMask.NameToLayer(layerName);
+        }
+
         private void Awake()
         {
             _instance = this;
             xrState = XRState.NORMAL;
+
         }
 
         private void Start()
@@ -162,8 +168,9 @@ namespace ExeudVR
 
         private void SetCursorImageFromLayer(int objectLayer)
         {
-            // ui and buttons
-            if (objectLayer == 12)
+            string thisLayer = LayerMask.LayerToName(objectLayer);
+
+            if (string.Equals(thisLayer, "Affordance") || string.Equals(thisLayer, "Buttons"))
             {
                 Cursor.SetCursor(cursorForControls, hotspot, cMode);
                 if (isGameMode)
@@ -173,8 +180,7 @@ namespace ExeudVR
                     crosshair.SetGap(8, true);
                 }
             }
-            // interactables (object and tools)
-            else if (objectLayer == 10 || objectLayer == 15)
+            else if (string.Equals(thisLayer, "Objects") || string.Equals(thisLayer, "Tools"))
             {
                 Cursor.SetCursor(cursorForObjects, hotspot, cMode);
                 if (isGameMode)
@@ -184,10 +190,9 @@ namespace ExeudVR
                     crosshair.SetGap(18, true);
                 }
             }
-            // controllables (furniture and wearables)
-            else if (objectLayer == 9 || objectLayer == 14)
+            else if (string.Equals(thisLayer, "Furniture") || string.Equals(thisLayer, "Scene"))
             {
-                Cursor.SetCursor(cursorForControls, hotspot, cMode);
+                Cursor.SetCursor(cursorForScene, hotspot, cMode);
                 if (isGameMode)
                 {   // narrow, thicker crosshair
                     crosshair.SetSize(6, true);
@@ -195,9 +200,9 @@ namespace ExeudVR
                     crosshair.SetGap(6, true);
                 }
             }
-            // default (scene) cursor
             else
             {
+                // defaults to `cursorForScene`
                 SetDefaultCursor();
             }
         }

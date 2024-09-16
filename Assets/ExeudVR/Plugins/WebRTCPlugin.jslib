@@ -221,32 +221,31 @@ mergeInto(LibraryManager.library, {
 		
 	RoomCheck: function(sender) {
 		var roomManagerNode = Pointer_stringify(sender);
-		
-		if (connection == null){
-			console.log("connection is null");
-			return;
+		try {
+			var socket = connection.getSocket(function(socket) {
+				socket.on('disconnect', function() {
+					console.log('Socket disconnected');
+				});
+				socket.on('connect', function() {
+					console.log("Socket Connected");
+				});
+				socket.on('error', function() {
+					console.log('Socket error');
+				});
+			});
+			
+			socket.emit('get-public-rooms', connection.publicRoomIdentifier, function(listOfRooms) {
+				this.listOfRooms = listOfRooms;
+				listOfRooms.forEach(function (room) {
+					SendMessage(roomManagerNode, "RoomFound", JSON.stringify(room));
+				});
+			});
+			
+			SendMessage(roomManagerNode, "RoomCheckComplete", "");
+		}		
+		catch(e) {
+			console.log("Error checking rooms\n" + e);
 		}
-		
-		var socket = connection.getSocket(function(socket) {
-			socket.on('disconnect', function() {
-				console.log('Socket disconnected');
-			});
-			socket.on('connect', function() {
-				console.log("Socket Connected");
-			});
-			socket.on('error', function() {
-				console.log('Socket error');
-			});
-		});
-		
-		socket.emit('get-public-rooms', connection.publicRoomIdentifier, function(listOfRooms) {
-			this.listOfRooms = listOfRooms;
-			listOfRooms.forEach(function (room) {
-				SendMessage(roomManagerNode, "RoomFound", JSON.stringify(room));
-			});
-		});
-		
-		SendMessage(roomManagerNode, "RoomCheckComplete", "");
 	},
 
     OpenRoom: function(sender, roomId, roomSize, isPublic){
@@ -271,7 +270,7 @@ mergeInto(LibraryManager.library, {
 			});
 		}		
 		catch(e) {
-			console.log("Error opening room:\n" + e);
+			console.log("Error opening room\n" + e);
 		}
 			
     },
@@ -280,18 +279,25 @@ mergeInto(LibraryManager.library, {
 		var roomManagerNode = Pointer_stringify(sender);
 		var jRoomId = Pointer_stringify(roomId);
 		
-		connection.checkPresence(jRoomId, function(isRoomExist, roomid){
-			if (isRoomExist) {
-				connection.join(roomid, function (isRoomJoined, roomid, error) {
-					if (error == 'Room full') {
-						console.log("Room is full");
-						SendMessage(roomManagerNode, "RoomIsFull", JSON.stringify(roomid));
-						return;
-					}
-					SendMessage(roomManagerNode, "RoomJoined", JSON.stringify(roomid));
-				});
-			}
-		});
+		try {
+			connection.checkPresence(jRoomId, function(isRoomExist, roomid){
+				if (isRoomExist) {
+					connection.join(roomid, function (isRoomJoined, roomid, error) {
+						if (error == 'Room full') {
+							SendMessage(roomManagerNode, "RoomIsFull", JSON.stringify(roomid));
+							return;
+						}
+						SendMessage(roomManagerNode, "RoomJoined", JSON.stringify(roomid));
+					});
+				}
+				else{
+					SendMessage(roomManagerNode, "RoomNotFound", JSON.stringify(roomId));
+				}
+			});
+		}
+		catch(e) {
+			console.log("Error joining room\n" + e);
+		}
 	},
 	
 	CeaseConnection : function(){

@@ -7,13 +7,14 @@
 using UnityEngine;
 using System;
 using ExeudVR.SharedAssets;
+using System.Collections;
 
 namespace ExeudVR
 {
     /// <summary>
     /// Handles all mouse and keyboard inputs, orients and propels the user in the space.
     /// Connects the user to the objects and tools around them and connects to other components.
-    /// <para /><see href="https://github.com/willguest/ExeudVR/tree/develop/Documentation/Controllers/DesktopController.md"/>
+    /// <para /><see href="https://github.com/Exeud/ExeudVR/tree/develop/Documentation/Controllers/DesktopController.md"/>
 
     public class DesktopController : MonoBehaviour
     {
@@ -30,7 +31,7 @@ namespace ExeudVR
         [SerializeField] private float mouseSensitivity = 2.0f;
 
         [Tooltip("(Optional) Joysick for character movement on mobile devices")]
-        [SerializeField] private Canvas JoystickRoot;
+        [SerializeField] private Canvas MobileJoystick;
 
         [Tooltip("Joystick sensitivity, when present")]
         [SerializeField] private float joystickMultiplier = 3f;
@@ -87,10 +88,13 @@ namespace ExeudVR
         private GameObject activeMesh;
 
         private float jumpTick;
-        private float triggerTick = 0;
+        private float triggerTickStart = 0;
+        private float triggerTickEnd = 0;
+
+        private bool isNetworkConnected = false;
 
         public bool buttonDown { get; set; }
-        private GameObject currentButton;
+        private PressableButton currentButton;
 
 
         #endregion ----- Private Variables ------
@@ -114,22 +118,23 @@ namespace ExeudVR
 
             attachJoint = GetComponent<FixedJoint>();
             
-            if (JoystickRoot != null)
+            if (MobileJoystick != null)
             {
-                variableJoystick = JoystickRoot.GetComponentInChildren<VariableJoystick>();
+                variableJoystick = MobileJoystick.GetComponentInChildren<VariableJoystick>();
+                variableJoystick.UpdateJoystickVisibility();
             }
 
             PlatformManager.Instance.OnStateChange += OnXRChange;
+            if (NetworkIO.Instance)
+            {
+                NetworkIO.Instance.OnConnectionChanged += UpdateConnectionStatus;
+            }
         }
 
-        void FixedUpdate()
+        private void Update()
         {
             if (xrState != XRState.NORMAL) { return; }
-
-            // set character pose
-            MoveBodyWithKeyboard();
-            MoveBodyWithJoystick();            
-            SetCameraRotation();        
+            SetCameraRotation();
 
             // make observation
             GameObject viewedObject = ScreenRaycast();
@@ -139,9 +144,18 @@ namespace ExeudVR
             }
             else
             {
-                // remember, this is a Unity null, not a total null
+                // remember, this is a Unity null, not a complete null
                 CurrentObject = null;
             }
+        }
+
+        void FixedUpdate()
+        {
+            if (xrState != XRState.NORMAL) { return; }
+
+            // set character pose
+            MoveBodyWithKeyboard();
+            MoveBodyWithJoystick();
         }
 
         private void OnDisable()
@@ -161,6 +175,11 @@ namespace ExeudVR
             {
                 variableJoystick.UpdateJoystickVisibility();
             }
+        }
+
+        private void UpdateConnectionStatus(bool state)
+        {
+            isNetworkConnected = state;
         }
 
         #endregion ----- Unity Functions ------
@@ -199,38 +218,27 @@ namespace ExeudVR
 
                 if (e.type == EventType.MouseDown && e.button == 0 && CurrentObject != null)
                 {
-
-                    if (CurrentObject.layer == 9 || CurrentObject.layer == 14)
+                    if (CurrentObject.TryGetComponent(out SharedAsset sharedAsset))
                     {
-                        //set interation options for controllables...
-                    }
-                    else if (CurrentObject.layer == 10 || CurrentObject.layer == 15)
-                    {
-                        // identify shared asset and assign currentTargetId
-                        SharedAsset sharedAsset = CurrentObject.GetComponent<SharedAsset>();
-
-                        if (sharedAsset)
+                        if (!sharedAsset.IsBeingHandled)
                         {
-                            if (!sharedAsset.IsBeingHandled)
-                            {
-                                currentSharedAsset = sharedAsset;
-                                PickUpObject(CurrentObject);
-                            }
-                            else
-                            {
-                                Debug.Log("This object is being used by someone else. \n" +
-                                    "Please pester them until they let you play with it.");
-                            }
+                            currentSharedAsset = sharedAsset;
                         }
-                        else if (!CurrentObject.GetComponent<XRController>())
+                        else
                         {
-                            PickUpObject(CurrentObject);
+                            Debug.Log("This object is in use.");
                         }
                     }
-                    else if (CurrentObject.layer == 12) // buttons
+
+                    if (CurrentObject.TryGetComponent(out PressableButton button))
                     {
-                        ActivateObjectTrigger(CurrentObject);
+                        ActivateButton(button);
                     }
+                    else if (!CurrentObject.GetComponent<XRController>() && CurrentObject.TryGetComponent(out RigidDynamics rd))
+                    {
+                        PickUpObject(rd);
+                    }
+                    
                 }
                 else if (e.type == EventType.MouseUp && e.button == 0)
                 {
@@ -240,7 +248,7 @@ namespace ExeudVR
                     }
                     else if (buttonDown && currentButton != null)
                     {
-                        ReleaseObjectTrigger(currentButton);
+                        ReleaseButton(currentButton);
                     }
                 }
             }
@@ -288,6 +296,10 @@ namespace ExeudVR
 
         private Quaternion GetCameraRotationFromMouse(float sensitivity, float invertMouse)
         {
+#if UNITY_EDITOR
+            // BUG: the sensitivity is much lower in the editor. this is a hack
+            //sensitivity *= 3.0f;
+#endif
             if (runOne)
             {
                 rotationX = Input.GetAxis("Mouse X");
@@ -296,8 +308,8 @@ namespace ExeudVR
             }
             else
             {
-                rotationX += (Input.GetAxis("Mouse X") * invertMouse) * sensitivity;
-                rotationY += (Input.GetAxis("Mouse Y") * invertMouse) * sensitivity;
+                rotationX += (Input.GetAxis("Mouse X") * invertMouse) * sensitivity * 1.0f;
+                rotationY += (Input.GetAxis("Mouse Y") * invertMouse) * sensitivity * 1.0f;
             }
             rotationX = ClampAngle(rotationX, minimumX, maximumX);
             rotationY = ClampAngle(rotationY, minimumY, maximumY);
@@ -363,19 +375,19 @@ namespace ExeudVR
 
         private void SetCameraRotation()
         {
-            float dragMod = isDragging ? -1.5f * globalInvertMouse : 1.0f;
+            float dragMod = isDragging ? -1.0f * globalInvertMouse: 1.0f;
 
             if (IsGameMode)
             {
-                Quaternion camQuat = GetCameraRotationFromMouse(mouseSensitivity, 1.0f * globalInvertMouse);
-                StartCoroutine(RotateCamera(camQuat, 10f));
+                Quaternion camQuat = GetCameraRotationFromMouse(mouseSensitivity, globalInvertMouse);
+                StartCoroutine(RotateCamera(camQuat, 1.0f));
             }
             else
             {
                 if (isMouseDown)
                 {
                     Quaternion camQuat = GetCameraRotationFromMouse(mouseSensitivity, -1.0f * dragMod * globalInvertMouse);
-                    StartCoroutine(RotateCamera(camQuat, 10f));
+                    StartCoroutine(RotateCamera(camQuat, 1.0f));
                 }
             }
         }
@@ -409,14 +421,13 @@ namespace ExeudVR
             return Mathf.Clamp(angle, min, max);
         }
 
-        private System.Collections.IEnumerator RotateCamera(Quaternion targetRot, float speed)
+        private IEnumerator RotateCamera(Quaternion targetRot, float speed)
         {
-
             float rotationTimer = 0.0f;
 
             while (rotationTimer < 1.0f)
             {
-                rotationTimer += Time.deltaTime * (1f / speed);
+                rotationTimer += Time.smoothDeltaTime * speed;
                 transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, rotationTimer * speed);
                 yield return new WaitForEndOfFrame();
             }
@@ -427,25 +438,26 @@ namespace ExeudVR
 
         #region ----- Object Interaction ------
 
-        private GameObject PickUpObject(GameObject ooi)
+        private GameObject PickUpObject(RigidDynamics rd)
         {
-            if (ooi != null)
+            if (rd != null)
             {
-                activeMesh = GetActiveMesh(ooi);
-                if (activeMesh == null) return null;
+                activeMesh = rd.gameObject;
 
                 Rigidbody actRB = activeMesh.GetComponent<Rigidbody>();
                 actRB.isKinematic = false;
+                actRB.MovePosition(transform.position);
+
 
                 attachJoint.connectedBody = actRB;
 
-                if (currentSharedAsset)
+                if (currentSharedAsset && isNetworkConnected)
                 {
                     currentSharedAsset.IsBeingHandled = true;
                     InvokeAcquisitionEvent(currentSharedAsset.Id, activeMesh.transform);
                 }
 
-                // flag caught by the fixed update
+                // flag caught by fixed update
                 isDragging = true;
                 return activeMesh;
             }
@@ -474,7 +486,7 @@ namespace ExeudVR
                 activeRB.AddTorque(td.AngularForce, ForceMode.Impulse);
 
                 // network release
-                if (currentSharedAsset)
+                if (currentSharedAsset && isNetworkConnected)
                 {
                     InvokeReleaseEvent(currentSharedAsset.Id, activeMesh, td);
                     currentSharedAsset.IsBeingHandled = false;
@@ -500,7 +512,7 @@ namespace ExeudVR
             };
 
             var interactionEvent = BuildEventFrame(target, AvatarInteractionEventType.AcquireData, newAcquisition, null);
-            OnNetworkInteraction.Invoke(interactionEvent);
+            OnNetworkInteraction?.Invoke(interactionEvent);
         }
 
         private void InvokeReleaseEvent(string target, GameObject interactionObject, ThrowData throwData)
@@ -514,7 +526,7 @@ namespace ExeudVR
             };
 
             var interactionEvent = BuildEventFrame(target, AvatarInteractionEventType.ReleaseData, null, newRelease);
-            OnNetworkInteraction.Invoke(interactionEvent);
+            OnNetworkInteraction?.Invoke(interactionEvent);
         }
 
         private AvatarHandlingData BuildEventFrame(string targetId, AvatarInteractionEventType eventType, AcquireData acqDataFrame = null, ReleaseData relDataFrame = null)
@@ -534,42 +546,30 @@ namespace ExeudVR
         private GameObject GetActiveMesh(GameObject ooi)
         {
             // priority: self, parent, child
-            if (ooi.GetComponent<Rigidbody>())
-            {
-                return ooi;
-            }
-            else if (ooi.GetComponentInParent<Rigidbody>())
-            {
-                return ooi.GetComponentInParent<Rigidbody>().gameObject;
-            }
-            else if (ooi.GetComponentInChildren<Rigidbody>())
-            {
-                return ooi.GetComponentInChildren<Rigidbody>().gameObject;
-            }
-            else
-            {
-                return null;
-            }
+            return ooi.TryGetComponent(out RigidDynamics r_1) ? r_1.gameObject :
+                ooi.transform.parent.TryGetComponent(out RigidDynamics r_2) ? r_2.gameObject :
+                ooi.GetComponentInChildren<RigidDynamics>().gameObject;
         }
 
-        private void ActivateObjectTrigger(GameObject currObj)
+        private void ActivateButton(PressableButton pb)
         {
-            if (currObj.TryGetComponent(out PressableButton pba) && (Time.time - triggerTick) > 0.5f)
+            if ((Time.time - triggerTickStart) > 0.5f)
             {
-                triggerTick = Time.time;
+                triggerTickStart = Time.time;
                 buttonDown = true;
-                currentButton = currObj;
-                pba.ButtonPressed.Invoke();
+                currentButton = pb;
+                pb.ButtonPressed.Invoke();
             }
         }
 
-        private void ReleaseObjectTrigger(GameObject currObj)
+        private void ReleaseButton(PressableButton pb)
         {
-            if (currObj.TryGetComponent(out PressableButton pba))
+            if ((Time.time - triggerTickEnd) > 0.5f)
             {
+                triggerTickEnd = Time.time;
                 buttonDown = false;
                 currentButton = null;
-                pba.ButtonReleased.Invoke();
+                pb.ButtonReleased.Invoke();
             }
         }
 

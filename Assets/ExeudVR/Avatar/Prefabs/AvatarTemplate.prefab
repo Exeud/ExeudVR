@@ -209,7 +209,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a5b8d9309177c0a449960e1382c3da76, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  AffectedRenderers:
+  Renderers:
   - {fileID: 8457167851407070709}
   - {fileID: 5359218812570267551}
   - {fileID: 7156324835300993452}
@@ -937,7 +937,6 @@ GameObject:
   m_Component:
   - component: {fileID: 7380913857581777686}
   - component: {fileID: 7864857941103073709}
-  - component: {fileID: 7864857941103073707}
   - component: {fileID: 3599877596569343376}
   - component: {fileID: 698610191124694001}
   m_Layer: 14
@@ -978,14 +977,6 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
---- !u!33 &7864857941103073707
-MeshFilter:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7864857941103073708}
-  m_Mesh: {fileID: -2432090755550338912, guid: 31a9aa727da393141938c2adf4216509, type: 3}
 --- !u!82 &3599877596569343376
 AudioSource:
   m_ObjectHideFlags: 0

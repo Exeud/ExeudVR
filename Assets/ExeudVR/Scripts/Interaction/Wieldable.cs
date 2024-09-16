@@ -10,11 +10,11 @@ using UnityEngine;
 namespace ExeudVR
 {
     /// <summary>
-    /// This component allows object that are grabbed by the user to modify the hand pose. 
+    /// This component allows objects to be wielded by the user, referencing a particular hand pose. 
     /// e.g. bowling balls, baseball bats or pool cues (2-handed). For more information 
-    /// <see href="https://github.com/willguest/ExeudVR/tree/develop/Documentation/Interaction/Grabbable.md"/>
+    /// <see href="https://github.com/Exeud/ExeudVR/tree/develop/Documentation/Interaction/Grabbable.md"/>
     /// </summary>
-    public class Grabbable : MonoBehaviour
+    public class Wieldable : MonoBehaviour
     {
         [Tooltip("The pose (position and rotation) of the object, when held.")]
         [SerializeField] private Transform controlPoseLeft;
@@ -129,7 +129,7 @@ namespace ExeudVR
             }
         }
 
-        public void BeginAttraction(ControllerHand hand, Transform handTransform, System.Action<Grabbable, string> callback)
+        public void BeginAttraction(ControllerHand hand, Transform handTransform, System.Action<Wieldable, string> callback)
         {
             Transform cPose = (hand == ControllerHand.RIGHT) ? controlPoseRight : controlPoseLeft;
             Quaternion targetRot = handTransform.rotation * cPose.localRotation;
@@ -143,7 +143,7 @@ namespace ExeudVR
             return primaryHandPose;
         }
 
-        private IEnumerator OrientToHand(Quaternion targetRotation, float duration, System.Action<Grabbable, string> callback)
+        private IEnumerator OrientToHand(Quaternion targetRotation, float duration, System.Action<Wieldable, string> callback)
         {
             yield return new WaitForEndOfFrame();
 

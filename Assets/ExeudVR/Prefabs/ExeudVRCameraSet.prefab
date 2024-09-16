@@ -328,8 +328,6 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 1
-  IsBeingUsed: 0
-  IsBeingHeld: 0
 --- !u!1 &604471546872307593
 GameObject:
   m_ObjectHideFlags: 0
@@ -653,7 +651,7 @@ GameObject:
   - component: {fileID: 393870116106097350}
   - component: {fileID: 1489154454742040140}
   - component: {fileID: 7217770584006583176}
-  m_Layer: 5
+  m_Layer: 14
   m_Name: controlsImg
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1368,7 +1366,7 @@ GameObject:
   - component: {fileID: 3345137034778467898}
   - component: {fileID: 686982703365073648}
   - component: {fileID: 1335417693876390690}
-  m_Layer: 5
+  m_Layer: 14
   m_Name: Follower
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1383,7 +1381,7 @@ RectTransform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1335417693876390693}
   m_LocalRotation: {x: -0.04494348, y: -0.9512512, z: -0.16773131, w: 0.25488704}
-  m_LocalPosition: {x: 0, y: 0, z: 1.2348}
+  m_LocalPosition: {x: 0, y: 0, z: 1.2}
   m_LocalScale: {x: 1.5, y: 1.5, z: 1.5}
   m_Children:
   - {fileID: 1961305128674578851}
@@ -1393,7 +1391,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: -20, y: -150, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0.37, y: -0.46}
+  m_AnchoredPosition: {x: 0.4, y: -0.4}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!33 &3345137034778467898
@@ -1516,7 +1514,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1961305128674578851}
   - component: {fileID: 1961305128674578848}
-  m_Layer: 5
+  m_Layer: 14
   m_Name: SettingsPanel
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1562,7 +1560,7 @@ GameObject:
   - component: {fileID: 1961305128784865851}
   - component: {fileID: 1961305128784865849}
   - component: {fileID: 1961305128784865848}
-  m_Layer: 5
+  m_Layer: 14
   m_Name: Image
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1639,7 +1637,7 @@ GameObject:
   - component: {fileID: 1961305129406919159}
   - component: {fileID: 1961305129406919156}
   - component: {fileID: 1961305129406919157}
-  m_Layer: 12
+  m_Layer: 14
   m_Name: settingsColl
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1690,19 +1688,7 @@ MonoBehaviour:
       m_Calls: []
   TouchEnd:
     m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 1335417693876390690}
-        m_TargetAssemblyTypeName: ExeudVR.FollowerBehaviour, ExeudVR
-        m_MethodName: ToggleSettings
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 1
+      m_Calls: []
   ButtonPressed:
     m_PersistentCalls:
       m_Calls: []
@@ -1732,7 +1718,7 @@ GameObject:
   - component: {fileID: 1961305129549308208}
   - component: {fileID: 1961305129549308209}
   - component: {fileID: 1961305129549308238}
-  m_Layer: 12
+  m_Layer: 14
   m_Name: vrColl
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1783,19 +1769,7 @@ MonoBehaviour:
       m_Calls: []
   TouchEnd:
     m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 1335417693876390690}
-        m_TargetAssemblyTypeName: ExeudVR.FollowerBehaviour, ExeudVR
-        m_MethodName: ToggleVR
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
+      m_Calls: []
   ButtonPressed:
     m_PersistentCalls:
       m_Calls: []
@@ -1826,7 +1800,7 @@ GameObject:
   - component: {fileID: 1961305130550114599}
   - component: {fileID: 6678379077537735018}
   - component: {fileID: 6678379077537735013}
-  m_Layer: 5
+  m_Layer: 14
   m_Name: InfoCanvas
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -3655,14 +3629,8 @@ MonoBehaviour:
   debugHand: 0
   CharacterRoot: {fileID: 4312725685611342357}
   MaxInteractionDistance: 15
-  HandRenderers:
-  - {fileID: 3244850451866341854}
-  - {fileID: 4460425801014043767}
-  - {fileID: 4593121626892339791}
+  handModel: {fileID: 6674150770923651142}
   xrPointer: {fileID: 3104982938460061228}
-  PointerLayerMask:
-    serializedVersion: 2
-    m_Bits: 48673
   anim: {fileID: 889759536889625972}
   handIKAnchor: {fileID: 5863292637655092749}
 --- !u!114 &2724570041455061384
@@ -4322,6 +4290,7 @@ MonoBehaviour:
   HUDObjectRoot: {fileID: 1335417693876390693}
   HUDSnappiness: 4
   footPlate: {fileID: 8124651254019535216}
+  fixFootPosition: 0
   footLayerMask:
     serializedVersion: 2
     m_Bits: 2048
@@ -4517,7 +4486,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6004554792207989523}
-  m_Layer: 12
+  m_Layer: 14
   m_Name: Buttons
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -4783,17 +4752,8 @@ MonoBehaviour:
   debugHand: 0
   CharacterRoot: {fileID: 4312725685611342357}
   MaxInteractionDistance: 15
-  HandRenderers:
-  - {fileID: 6193440620239901832}
-  - {fileID: 2740585478052436292}
-  - {fileID: 2616615101025761148}
-  - {fileID: 1206552844124080154}
-  - {fileID: 7229642067038121535}
-  - {fileID: 9165086581537125427}
+  handModel: {fileID: 5147973472974601589}
   xrPointer: {fileID: 3528855987644154655}
-  PointerLayerMask:
-    serializedVersion: 2
-    m_Bits: 48673
   anim: {fileID: 4721668602858969584}
   handIKAnchor: {fileID: 5863292638321398247}
 --- !u!114 &4652326769506672292
@@ -5080,11 +5040,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   CharacterVehicle: {fileID: 4312725685611342357}
   mouseSensitivity: 3
-  JoystickRoot: {fileID: 0}
+  MobileJoystick: {fileID: 0}
   joystickMultiplier: 3
   pointerLayerMask:
     serializedVersion: 2
-    m_Bits: 65057
+    m_Bits: 65025
 --- !u!114 &6716298942267407321
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5109,7 +5069,7 @@ MonoBehaviour:
   m_VolumeTrigger: {fileID: 0}
   m_VolumeFrameworkUpdateModeOption: 2
   m_RenderPostProcessing: 0
-  m_Antialiasing: 0
+  m_Antialiasing: 1
   m_AntialiasingQuality: 2
   m_StopNaN: 0
   m_Dithering: 0
@@ -5568,7 +5528,7 @@ GameObject:
   - component: {fileID: 2032654077676136195}
   - component: {fileID: 2377903172651672688}
   - component: {fileID: 7074334445896281848}
-  m_Layer: 5
+  m_Layer: 14
   m_Name: settingsText
   m_TagString: Untagged
   m_Icon: {fileID: 0}

@@ -12,7 +12,7 @@ namespace ExeudVR.SharedAssets
     /// <summary>
     /// This singleton component manages the shared asset register, which keeps track of all the objects whose 
     /// movement and state is shared across the p2p network. For more information 
-    /// <see href="https://github.com/willguest/ExeudVR/tree/develop/Documentation/SharedAssets/SharedAssetManager.md"/>
+    /// <see href="https://github.com/Exeud/ExeudVR/tree/develop/Documentation/SharedAssets/SharedAssetManager.md"/>
     /// </summary>
     public class SharedAssetManager : MonoBehaviour
     {

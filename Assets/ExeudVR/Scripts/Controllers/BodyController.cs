@@ -16,7 +16,7 @@ namespace ExeudVR
 {
     /// <summary>
     /// The BodyController is the meeting point for all data and where they get packaged and sent across the network. 
-    /// <para /><see href="https://github.com/willguest/ExeudVR/tree/develop/Documentation/Controllers/BodyController.md"/>
+    /// <para /><see href="https://github.com/Exeud/ExeudVR/tree/develop/Documentation/Controllers/BodyController.md"/>
     /// </summary>
     public class BodyController : MonoBehaviour
     {
@@ -142,7 +142,6 @@ namespace ExeudVR
                 }
                 if (NetworkIO.Instance)
                 {
-                    NetworkIO.Instance.OnConnectionChanged += SetConnectionReady;
                     NetworkIO.Instance.OnJoinedRoom += InitialiseDataChannel;
                 }
 
@@ -159,7 +158,6 @@ namespace ExeudVR
                 }
                 if (NetworkIO.Instance)
                 {
-                    NetworkIO.Instance.OnConnectionChanged -= SetConnectionReady;
                     NetworkIO.Instance.OnJoinedRoom -= InitialiseDataChannel;
                 }
 
@@ -236,8 +234,9 @@ namespace ExeudVR
                 (hand == ControllerHand.LEFT) ? leftController : null;
         }
 
-        private void InitialiseDataChannel(string userid = "")
+        private void InitialiseDataChannel(string userId)
         {
+            CurrentUserId = userId;
             if (!notifyingNetwork)
             {
                 StartCoroutine(StartAfterDelay(2.0f));
@@ -265,7 +264,6 @@ namespace ExeudVR
 
         private void SetConnectionReady(bool newState)
         {
-            CurrentUserId = NetworkIO.Instance.CurrentUserId;
             IsConnectionReady = newState;
             if (newState) SendDataFrame();
         }

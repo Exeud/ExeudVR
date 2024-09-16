@@ -14,7 +14,7 @@ using UnityEngine.UI;
 namespace ExeudVR
 {
     /// <summary>
-    /// <para /><see href="https://github.com/willguest/ExeudVR/tree/develop/Documentation/Media/JukeboxController.md"/>
+    /// <para /><see href="https://github.com/Exeud/ExeudVR/tree/develop/Documentation/Media/JukeboxController.md"/>
     /// </summary>
     public class JukeboxController : MonoBehaviour
     {
