@@ -38,7 +38,7 @@ namespace ExeudVR
 
 
         [Tooltip("Joystick always visible, when detected")]
-        [SerializeField] private bool forcejoystickVisible = false;
+        [SerializeField] private bool forceJoystickVisible = false;
 
 
         [Tooltip("Which layers should the cursor interact with")]
@@ -126,7 +126,7 @@ namespace ExeudVR
             if (MobileJoystick != null)
             {
                 variableJoystick = MobileJoystick.GetComponentInChildren<VariableJoystick>();
-                variableJoystick.UpdateJoystickVisibility(forcejoystickVisible);
+                variableJoystick.UpdateJoystickVisibility(forceJoystickVisible);
             }
 
             PlatformManager.Instance.OnStateChange += OnXRChange;

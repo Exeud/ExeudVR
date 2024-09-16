@@ -493,7 +493,7 @@ Transform:
   - {fileID: 4018758231392923047}
   m_Father: {fileID: 0}
   m_RootOrder: 0
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 30, z: 0}
 --- !u!114 &8142412486320772633
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -536,34 +536,6 @@ PrefabInstance:
       propertyPath: controlEvents.Array.data[1].controlEffect.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
       objectReference: {fileID: 8142412486320772635}
-    - target: {fileID: 2250353065954608284, guid: e8114e4eb1c2635499a440753d4b8649, type: 3}
-      propertyPath: controlEvents.Array.data[0].controlEffect.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
-      value: OpenJoin
-      objectReference: {fileID: 0}
-    - target: {fileID: 2250353065954608284, guid: e8114e4eb1c2635499a440753d4b8649, type: 3}
-      propertyPath: controlEvents.Array.data[1].controlEffect.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
-      value: CloseRTC
-      objectReference: {fileID: 0}
-    - target: {fileID: 2250353065954608284, guid: e8114e4eb1c2635499a440753d4b8649, type: 3}
-      propertyPath: controlEvents.Array.data[0].controlEffect.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
-      value: ExeudVR.NetworkIO, ExeudVR
-      objectReference: {fileID: 0}
-    - target: {fileID: 2250353065954608284, guid: e8114e4eb1c2635499a440753d4b8649, type: 3}
-      propertyPath: controlEvents.Array.data[1].controlEffect.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
-      value: ExeudVR.NetworkIO, ExeudVR
-      objectReference: {fileID: 0}
-    - target: {fileID: 2250353065954608354, guid: e8114e4eb1c2635499a440753d4b8649, type: 3}
-      propertyPath: m_ConnectedAnchor.x
-      value: 0.08870001
-      objectReference: {fileID: 0}
-    - target: {fileID: 2250353065954608354, guid: e8114e4eb1c2635499a440753d4b8649, type: 3}
-      propertyPath: m_ConnectedAnchor.y
-      value: 0.047499906
-      objectReference: {fileID: 0}
-    - target: {fileID: 2250353065954608354, guid: e8114e4eb1c2635499a440753d4b8649, type: 3}
-      propertyPath: m_ConnectedAnchor.z
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 2250353066662797188, guid: e8114e4eb1c2635499a440753d4b8649, type: 3}
       propertyPath: m_Name
       value: Lever
@@ -571,22 +543,6 @@ PrefabInstance:
     - target: {fileID: 2250353066662797195, guid: e8114e4eb1c2635499a440753d4b8649, type: 3}
       propertyPath: m_RootOrder
       value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 2250353066662797195, guid: e8114e4eb1c2635499a440753d4b8649, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 0.5
-      objectReference: {fileID: 0}
-    - target: {fileID: 2250353066662797195, guid: e8114e4eb1c2635499a440753d4b8649, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: -0.5
-      objectReference: {fileID: 0}
-    - target: {fileID: 2250353066662797195, guid: e8114e4eb1c2635499a440753d4b8649, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: -0.5
-      objectReference: {fileID: 0}
-    - target: {fileID: 2250353066662797195, guid: e8114e4eb1c2635499a440753d4b8649, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: 0.5
       objectReference: {fileID: 0}
     - target: {fileID: 2250353066662797195, guid: e8114e4eb1c2635499a440753d4b8649, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
