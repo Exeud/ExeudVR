@@ -10,6 +10,10 @@ using WebXR;
 
 namespace ExeudVR
 {
+    /// <summary>
+    /// Cast from WebXRManager to speed up internal state checks,
+    /// so order of `VR, AR, NORMAL` must be preserved.
+    /// </summary>
     public enum XRState
     {
         VR,

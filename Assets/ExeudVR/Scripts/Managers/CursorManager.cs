@@ -143,7 +143,7 @@ namespace ExeudVR
         {
             xrState = state;
 
-            if (xrState != XRState.NORMAL)
+            if (state != XRState.NORMAL)
             {
                 Cursor.visible = false;
             }

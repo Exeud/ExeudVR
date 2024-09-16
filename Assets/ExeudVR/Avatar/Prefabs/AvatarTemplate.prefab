@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 7107289677926428148}
   - component: {fileID: 7311273660911652090}
   - component: {fileID: 7156324835300993452}
-  m_Layer: 14
+  m_Layer: 15
   m_Name: rightPointer
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -92,7 +92,8 @@ GameObject:
   - component: {fileID: 3387550614145745790}
   - component: {fileID: 1778117837632523483}
   - component: {fileID: 4560408684308445201}
-  m_Layer: 14
+  - component: {fileID: 4342082329462581705}
+  m_Layer: 15
   m_Name: right_lowpolyhand
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -162,6 +163,20 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!64 &4342082329462581705
+MeshCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2614673807245318596}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_Enabled: 1
+  serializedVersion: 4
+  m_Convex: 0
+  m_CookingOptions: 30
+  m_Mesh: {fileID: 4803559095270227739, guid: 26627a1b45c068b4399a061179a965b9, type: 3}
 --- !u!1 &4482240306501446577
 GameObject:
   m_ObjectHideFlags: 0
@@ -173,8 +188,7 @@ GameObject:
   - component: {fileID: 4482240306501446576}
   - component: {fileID: 7949199276430898868}
   - component: {fileID: 1032414253567882682}
-  - component: {fileID: 5902208062286417892}
-  m_Layer: 14
+  m_Layer: 13
   m_Name: AvatarTemplate
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -237,19 +251,6 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 3
---- !u!135 &5902208062286417892
-SphereCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4482240306501446577}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 1
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Radius: 3
-  m_Center: {x: 0, y: -1, z: 0}
 --- !u!1 &4654282453454076680
 GameObject:
   m_ObjectHideFlags: 0
@@ -261,7 +262,8 @@ GameObject:
   - component: {fileID: 5466390935481278898}
   - component: {fileID: 8967614648908639767}
   - component: {fileID: 6599929919945906909}
-  m_Layer: 14
+  - component: {fileID: 2537322419049801530}
+  m_Layer: 15
   m_Name: left_lowpolyhand
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -331,6 +333,20 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!64 &2537322419049801530
+MeshCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4654282453454076680}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_Enabled: 1
+  serializedVersion: 4
+  m_Convex: 0
+  m_CookingOptions: 30
+  m_Mesh: {fileID: 4803559095270227739, guid: 26627a1b45c068b4399a061179a965b9, type: 3}
 --- !u!1 &5006404550678763316
 GameObject:
   m_ObjectHideFlags: 0
@@ -342,7 +358,7 @@ GameObject:
   - component: {fileID: 6034708185247908069}
   - component: {fileID: 2726525454244254639}
   - component: {fileID: 7419287423056311129}
-  m_Layer: 14
+  m_Layer: 13
   m_Name: indicator
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -423,7 +439,7 @@ GameObject:
   - component: {fileID: 5726657074729005584}
   - component: {fileID: 337037899968968560}
   - component: {fileID: 196129419592431643}
-  m_Layer: 14
+  m_Layer: 13
   m_Name: avatarBody
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -486,11 +502,10 @@ GameObject:
   - component: {fileID: 3115213175201814385}
   - component: {fileID: 4494442062075825219}
   - component: {fileID: 5683084359606246070}
-  - component: {fileID: 3777324003278690222}
   - component: {fileID: 6323386357834784473}
   - component: {fileID: 4425854889642967208}
   - component: {fileID: 1166936854481495664}
-  m_Layer: 14
+  m_Layer: 15
   m_Name: LeftHand
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -543,27 +558,6 @@ CapsuleCollider:
   m_Height: 0.2
   m_Direction: 2
   m_Center: {x: 0.025, y: 0, z: 0}
---- !u!95 &3777324003278690222
-Animator:
-  serializedVersion: 5
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5857482870350183243}
-  m_Enabled: 1
-  m_Avatar: {fileID: 9000000, guid: 7a389e8b79841ce49acc88801ad7cc0d, type: 3}
-  m_Controller: {fileID: 9100000, guid: 674703c780f990948b6afc6a13ea6af5, type: 2}
-  m_CullingMode: 1
-  m_UpdateMode: 0
-  m_ApplyRootMotion: 0
-  m_LinearVelocityBlending: 0
-  m_StabilizeFeet: 0
-  m_WarningMessage: 
-  m_HasTransformHierarchy: 1
-  m_AllowConstantClipSamplingOptimization: 1
-  m_KeepAnimatorStateOnDisable: 0
-  m_WriteDefaultValuesOnDisable: 0
 --- !u!138 &6323386357834784473
 FixedJoint:
   m_ObjectHideFlags: 0
@@ -616,12 +610,11 @@ GameObject:
   m_Component:
   - component: {fileID: 6241997657791447562}
   - component: {fileID: 3440825612090442714}
-  - component: {fileID: 3737798435293335778}
   - component: {fileID: 4018159790318526117}
   - component: {fileID: 1304155753219737920}
   - component: {fileID: 5496577871605793334}
   - component: {fileID: 2574806729054380411}
-  m_Layer: 14
+  m_Layer: 15
   m_Name: RightHand
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -660,27 +653,6 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 3
---- !u!95 &3737798435293335778
-Animator:
-  serializedVersion: 5
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6275288005576222000}
-  m_Enabled: 1
-  m_Avatar: {fileID: 9000000, guid: 227add1bc951e0b409a29d70f90f02f9, type: 3}
-  m_Controller: {fileID: 9100000, guid: 7c6f3114e13981244b5d08a5f9cfa651, type: 2}
-  m_CullingMode: 1
-  m_UpdateMode: 0
-  m_ApplyRootMotion: 0
-  m_LinearVelocityBlending: 0
-  m_StabilizeFeet: 0
-  m_WarningMessage: 
-  m_HasTransformHierarchy: 1
-  m_AllowConstantClipSamplingOptimization: 1
-  m_KeepAnimatorStateOnDisable: 0
-  m_WriteDefaultValuesOnDisable: 0
 --- !u!138 &4018159790318526117
 FixedJoint:
   m_ObjectHideFlags: 0
@@ -749,7 +721,7 @@ GameObject:
   - component: {fileID: 2054860855999404514}
   - component: {fileID: 4098533553113928102}
   - component: {fileID: 1395376260012798419}
-  m_Layer: 14
+  m_Layer: 13
   m_Name: latencyText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -857,7 +829,7 @@ GameObject:
   - component: {fileID: 1847208831375506547}
   - component: {fileID: 6871697626308623858}
   - component: {fileID: 5359218812570267551}
-  m_Layer: 14
+  m_Layer: 15
   m_Name: leftPointer
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -939,7 +911,7 @@ GameObject:
   - component: {fileID: 7864857941103073709}
   - component: {fileID: 3599877596569343376}
   - component: {fileID: 698610191124694001}
-  m_Layer: 14
+  m_Layer: 13
   m_Name: avatarHead
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1117,7 +1089,7 @@ GameObject:
   - component: {fileID: 7284231028857056922}
   - component: {fileID: 5960815457818124607}
   - component: {fileID: 8457167851407070709}
-  m_Layer: 14
+  m_Layer: 13
   m_Name: headsetModel
   m_TagString: Untagged
   m_Icon: {fileID: 0}

@@ -152,6 +152,7 @@ namespace ExeudVR
         private SharedAsset currentNearSharedAsset;
         private SharedAsset currentFarSharedAsset;
 
+        private bool isNetworkConnected = false;
         private string prevMeshName = "";
 
         // Axis trigger thresholds
@@ -197,6 +198,10 @@ namespace ExeudVR
             WebXRManager.OnXRChange -= OnXRChange;
             WebXRManager.OnControllerUpdate -= OnControllerUpdate;
             WebXRManager.OnHandUpdate -= OnHandUpdateInternal;
+            if (NetworkIO.Instance)
+            {
+                NetworkIO.Instance.OnConnectionChanged -= UpdateConnectionStatus;
+            }
 
             SetControllerActive(false);
             SetHandActive(false);
@@ -220,7 +225,11 @@ namespace ExeudVR
 
             attachJoint = new FixedJoint[] { GetComponents<FixedJoint>()[0], GetComponents<FixedJoint>()[1] };
             _camera = CharacterRoot.GetComponentInChildren<Camera>();
-            
+
+            if (NetworkIO.Instance)
+            {
+                NetworkIO.Instance.OnConnectionChanged += UpdateConnectionStatus;
+            }
 
             if (!debugHand)
             {
@@ -315,20 +324,20 @@ namespace ExeudVR
             {
                 if (GetButtonDown(ButtonTypes.ButtonA))
                 {
-                    AButtonEvent.Invoke(1.0f);
+                    AButtonEvent?.Invoke(1.0f);
                 }
                 else if (GetButtonUp(ButtonTypes.ButtonA))
                 {
-                    AButtonEvent.Invoke(0.0f);
+                    AButtonEvent?.Invoke(0.0f);
                 }
 
                 if (GetButtonDown(ButtonTypes.ButtonB))
                 {
-                    BButtonEvent.Invoke(1.0f);
+                    BButtonEvent?.Invoke(1.0f);
                 }
                 else if (GetButtonUp(ButtonTypes.ButtonB))
                 {
-                    BButtonEvent.Invoke(0.0f);
+                    BButtonEvent?.Invoke(0.0f);
                 }
             }
 
@@ -347,6 +356,7 @@ namespace ExeudVR
         {
             TryUpdateButtons();
         }
+
 #endif
 
 
@@ -402,6 +412,11 @@ namespace ExeudVR
         {
             xrState = state;
             ToggleHandObjects(xrState == WebXRState.VR);
+        }
+
+        private void UpdateConnectionStatus(bool state)
+        {
+            isNetworkConnected = state;
         }
 
         private void ToggleHandObjects(bool isVR)
@@ -876,6 +891,7 @@ namespace ExeudVR
 
             ThrowData newThrow;
             attachJoint[0].connectedBody = null;
+            nearcontactRigidBodies.Clear();
 
             // local throw
             if (currentNearRigidBody.gameObject.TryGetComponent(out RigidDynamics rigidDynamics))
@@ -894,6 +910,7 @@ namespace ExeudVR
 
             currentNearRigidBody.AddForce(newThrow.LinearForce, ForceMode.Impulse);
             currentNearRigidBody.AddTorque(newThrow.AngularForce, ForceMode.Impulse);
+            
 
             if (IsControllingObject)
             {
@@ -917,7 +934,7 @@ namespace ExeudVR
 
         private void InvokeAcquisitionEvent(string target, Transform interactionTransform, ManipulationDistance distance)
         {
-            if (!string.IsNullOrEmpty(target))
+            if (!string.IsNullOrEmpty(target) && isNetworkConnected)
             {
                 AcquireData newAcquisition = new AcquireData
                 {
@@ -927,7 +944,6 @@ namespace ExeudVR
                 };
 
                 AvatarHandlingData interactionEvent = BuildEventFrame(target, distance, AvatarInteractionEventType.AcquireData, newAcquisition, null);
-
                 OnHandInteraction?.Invoke(interactionEvent);
             }
         }
@@ -935,7 +951,7 @@ namespace ExeudVR
 
         private void InvokeReleaseEvent(string target, GameObject interactionObject, ManipulationDistance distance, ThrowData throwData)
         {
-            if (!string.IsNullOrEmpty(target))
+            if (!string.IsNullOrEmpty(target) && isNetworkConnected)
             {
                 ReleaseData newRelease = new ReleaseData
                 {
@@ -946,8 +962,7 @@ namespace ExeudVR
                 };
 
                 AvatarHandlingData interactionEvent = BuildEventFrame(target, distance, AvatarInteractionEventType.ReleaseData, null, newRelease);
-
-                OnHandInteraction.Invoke(interactionEvent);
+                OnHandInteraction?.Invoke(interactionEvent);
             }
         }
 
@@ -969,7 +984,7 @@ namespace ExeudVR
         #endregion Interaction Functions
 
 
-        #region >   Low-Level Interaction Methods
+        #region >   Low-Level Interaction
 
         private void SetActiveFarMesh()
         {
@@ -1110,7 +1125,7 @@ namespace ExeudVR
             return nearestRigidBody;
         }
 
-        #endregion Low-Level Interaction Methods
+        #endregion Low-Level Interaction
 
     }
 }

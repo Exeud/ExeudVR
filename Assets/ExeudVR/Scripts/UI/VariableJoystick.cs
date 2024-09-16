@@ -1,53 +1,57 @@
-﻿using ExeudVR;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.EventSystems;
 
-public class VariableJoystick : JoystickBase
+namespace ExeudVR
 {
-    public float MoveThreshold { get { return moveThreshold; } set { moveThreshold = Mathf.Abs(value); } }
-
-    [SerializeField] private float moveThreshold = 1;
-    [SerializeField] private JoystickTypeB joystickType = JoystickTypeB.Fixed;
-    [SerializeField] private bool forceVisibility = false;
-
-    protected override void Start()
+    public class VariableJoystick : JoystickBase
     {
-        base.Start();
-        UpdateJoystickVisibility();
-    }
+        public float MoveThreshold { get { return moveThreshold; } set { moveThreshold = Mathf.Abs(value); } }
 
-    public void UpdateJoystickVisibility()
-    {
-        background.gameObject.SetActive(PlatformManager.Instance.XrState == XRState.NORMAL);
-    }
+        [SerializeField] private float moveThreshold = 1;
+        [SerializeField] private JoystickTypeB joystickType = JoystickTypeB.Fixed;
 
-    public override void OnPointerDown(PointerEventData eventData)
-    {
-        if(joystickType != JoystickTypeB.Fixed)
+        protected override void Start()
         {
-            background.anchoredPosition = ScreenPointToAnchoredPosition(eventData.position);
-            background.gameObject.SetActive(true);
+            base.Start();
         }
-        base.OnPointerDown(eventData);
-    }
 
-    public override void OnPointerUp(PointerEventData eventData)
-    {
-        if(joystickType != JoystickTypeB.Fixed)
-            background.gameObject.SetActive(false);
-
-        base.OnPointerUp(eventData);
-    }
-
-    protected override void HandleInput(float magnitude, Vector2 normalised, Vector2 radius, Camera cam)
-    {
-        if (joystickType == JoystickTypeB.Dynamic && magnitude > moveThreshold)
+        public void UpdateJoystickVisibility(bool forceOn = false)
         {
-            Vector2 difference = normalised * (magnitude - moveThreshold) * radius;
-            background.anchoredPosition += difference;
+            background.gameObject.SetActive(PlatformManager.Instance.XrState == XRState.NORMAL || forceOn);
         }
-        base.HandleInput(magnitude, normalised, radius, cam);
+
+        public override void OnPointerDown(PointerEventData eventData)
+        {
+            if (joystickType != JoystickTypeB.Fixed)
+            {
+                background.anchoredPosition = ScreenPointToAnchoredPosition(eventData.position);
+                background.gameObject.SetActive(true);
+            }
+            base.OnPointerDown(eventData);
+        }
+
+        public override void OnPointerUp(PointerEventData eventData)
+        {
+            if (joystickType != JoystickTypeB.Fixed)
+                background.gameObject.SetActive(false);
+
+            base.OnPointerUp(eventData);
+        }
+
+        protected override void HandleInput(float magnitude, Vector2 normalised, Vector2 radius, Camera cam)
+        {
+            if (joystickType == JoystickTypeB.Dynamic && magnitude > moveThreshold)
+            {
+                Vector2 difference = normalised * (magnitude - moveThreshold) * radius;
+                background.anchoredPosition += difference;
+            }
+            base.HandleInput(magnitude, normalised, radius, cam);
+        }
+    }
+
+    public enum JoystickTypeB { 
+        Fixed, 
+        Floating, 
+        Dynamic 
     }
 }
-
-public enum JoystickTypeB { Fixed, Floating, Dynamic }

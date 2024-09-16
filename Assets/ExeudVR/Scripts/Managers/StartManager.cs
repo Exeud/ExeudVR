@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Events;
 
 namespace ExeudVR
 {
@@ -6,6 +7,8 @@ namespace ExeudVR
     {
         private static StartManager _instance;
         public static StartManager Instance { get { return _instance; } }
+
+        [SerializeField] private UnityEvent OnInitialisation = new UnityEvent();
 
         private bool hasStarted = false;
 
@@ -26,10 +29,11 @@ namespace ExeudVR
 
         private void OnTriggerExit(Collider other)
         {
-            if (!hasStarted && other.gameObject.layer == LayerMask.NameToLayer("Body"))
+            if (!hasStarted && other.attachedRigidbody.gameObject.GetComponentInChildren<Camera>())
             {
                 hasStarted = true;
                 OnInitialised?.Invoke();
+                OnInitialisation?.Invoke();
             }
         }
 

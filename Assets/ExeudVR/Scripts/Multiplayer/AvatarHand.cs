@@ -35,6 +35,7 @@ namespace ExeudVR
             {
                 if (!target)
                 {
+                    Debug.Log("Interaction target expected but not found.");
                     return;
                 }
 

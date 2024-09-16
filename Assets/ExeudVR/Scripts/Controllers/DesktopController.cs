@@ -33,8 +33,13 @@ namespace ExeudVR
         [Tooltip("(Optional) Joysick for character movement on mobile devices")]
         [SerializeField] private Canvas MobileJoystick;
 
-        [Tooltip("Joystick sensitivity, when present")]
+        [Tooltip("Joystick sensitivity, when detected")]
         [SerializeField] private float joystickMultiplier = 3f;
+
+
+        [Tooltip("Joystick always visible, when detected")]
+        [SerializeField] private bool forcejoystickVisible = false;
+
 
         [Tooltip("Which layers should the cursor interact with")]
         [SerializeField] private LayerMask pointerLayerMask;
@@ -121,7 +126,7 @@ namespace ExeudVR
             if (MobileJoystick != null)
             {
                 variableJoystick = MobileJoystick.GetComponentInChildren<VariableJoystick>();
-                variableJoystick.UpdateJoystickVisibility();
+                variableJoystick.UpdateJoystickVisibility(forcejoystickVisible);
             }
 
             PlatformManager.Instance.OnStateChange += OnXRChange;
@@ -161,14 +166,19 @@ namespace ExeudVR
         private void OnDisable()
         {
             PlatformManager.Instance.OnStateChange -= OnXRChange;
+            if (NetworkIO.Instance)
+            {
+                NetworkIO.Instance.OnConnectionChanged -= UpdateConnectionStatus;
+            }
         }
 
         private void OnXRChange(XRState state)
         {
             xrState = state;
-            if (CursorManager.Instance != null)
+
+            if (CursorManager.Instance)
             {
-                CursorManager.Instance.SetCursorParameters(xrState);
+                CursorManager.Instance.SetCursorParameters(state);
             }
 
             if (variableJoystick != null)
@@ -511,7 +521,7 @@ namespace ExeudVR
                 ObjectRotation = interactionTransform.rotation
             };
 
-            var interactionEvent = BuildEventFrame(target, AvatarInteractionEventType.AcquireData, newAcquisition, null);
+            AvatarHandlingData interactionEvent = BuildEventFrame(target, AvatarInteractionEventType.AcquireData, newAcquisition, null);
             OnNetworkInteraction?.Invoke(interactionEvent);
         }
 
@@ -525,7 +535,7 @@ namespace ExeudVR
                 ForceData = throwData
             };
 
-            var interactionEvent = BuildEventFrame(target, AvatarInteractionEventType.ReleaseData, null, newRelease);
+            AvatarHandlingData interactionEvent = BuildEventFrame(target, AvatarInteractionEventType.ReleaseData, null, newRelease);
             OnNetworkInteraction?.Invoke(interactionEvent);
         }
 

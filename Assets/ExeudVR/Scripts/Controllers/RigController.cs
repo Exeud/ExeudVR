@@ -14,7 +14,7 @@ namespace ExeudVR
         [Range(1f, 10f)]
         [SerializeField] private float HUDSnappiness = 3;
         [SerializeField] private GameObject footPlate;
-        [SerializeField] private bool fixFootPosition;
+        [SerializeField] private bool castFootPosition;
         [SerializeField] private LayerMask footLayerMask;
 
         private Vector3 BodyOffset;
@@ -45,7 +45,7 @@ namespace ExeudVR
             transform.localRotation = Quaternion.Euler(0f, attitude, 0f);
             footPlate.transform.localRotation = Quaternion.Euler(0f, attitude , 0f);
 
-            if (fixFootPosition)
+            if (castFootPosition)
             {
                 bool hasHit = Physics.Raycast(transform.position + (transform.up * -1.3f), Vector3.down, out RaycastHit hit, 10f, footLayerMask);
                 if (hasHit)
