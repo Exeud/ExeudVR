@@ -11,7 +11,7 @@ namespace ExeudVR
 {
     /// <summary>
     /// Replaces object when they fall out of the scene and hit the 'Planes of Destruction'. 
-    /// <see href="https://github.com/Exeud/ExeudVR/tree/develop/Documentation/Managers/Respawn.md"/>
+    /// <para /><see href="https://github.com/Exeud/ExeudVR/tree/develop/Documentation/Managers/Respawn.md"/>
     /// </summary>
     public class Respawn : MonoBehaviour
     {

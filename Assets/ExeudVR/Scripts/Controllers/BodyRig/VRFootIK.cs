@@ -94,7 +94,7 @@ public class VRFootIK : MonoBehaviour
         if (enableFootSounds && (Time.time - stepTick > stepDelay))
         {
             stepTick = Time.time;
-            //footAudio.Play();
+            footAudio.Play();
         }
     }
 }

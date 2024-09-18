@@ -1,4 +1,10 @@
-﻿#if UNITY_EDITOR
+﻿/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
+#if UNITY_EDITOR
 
 using System.IO;
 using UnityEditor;
@@ -6,6 +12,10 @@ using UnityEngine;
 
 namespace ExeudVR
 {
+    /// <summary>
+    /// Populates streaming asset arrays, serializes paths.
+    /// <para /><see href="https://github.com/Exeud/ExeudVR/tree/develop/Documentation/Editor/StreamingAssetHandler.md"/>
+    /// </summary>
     [CustomEditor(typeof(StreamingAsset))]
     public class StreamingAssetHandler : Editor
     {

@@ -10,7 +10,7 @@ using UnityEngine.UI;
 namespace ExeudVR
 {
     /// <summary>
-    /// Stores and sends text chat data over the network.
+    /// Sends and receives text data over the network.
     /// <para /><see href="https://github.com/Exeud/ExeudVR/tree/develop/Documentation/Multiplayer/ChatController.md"/>
     /// </summary>
     public class ChatController : MonoBehaviour

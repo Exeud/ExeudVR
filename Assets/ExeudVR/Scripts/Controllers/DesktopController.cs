@@ -12,10 +12,9 @@ using System.Collections;
 namespace ExeudVR
 {
     /// <summary>
-    /// Handles all mouse and keyboard inputs, orients and propels the user in the space.
+    /// Handles all mouse and keyboard inputs, orients and propels the character in the space.
     /// Connects the user to the objects and tools around them and connects to other components.
     /// <para /><see href="https://github.com/Exeud/ExeudVR/tree/develop/Documentation/Controllers/DesktopController.md"/>
-
     public class DesktopController : MonoBehaviour
     {
         // Singleton pattern
@@ -385,7 +384,7 @@ namespace ExeudVR
 
         private void SetCameraRotation()
         {
-            float dragMod = isDragging ? -1.0f * globalInvertMouse: 1.0f;
+            float dragMod = isDragging ? -1.0f * globalInvertMouse : 1.0f;
 
             if (IsGameMode)
             {

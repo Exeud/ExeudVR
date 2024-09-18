@@ -14,8 +14,10 @@ using UnityEngine.UI;
 namespace ExeudVR
 {
     /// <summary>
+    /// Connects to IndexedDB to grab audio from the StreamingAsset component. Link to a Text component to show track info.
     /// <para /><see href="https://github.com/Exeud/ExeudVR/tree/develop/Documentation/Media/JukeboxController.md"/>
     /// </summary>
+    [RequireComponent(typeof(StreamingAsset))]
     public class JukeboxController : MonoBehaviour
     {
 

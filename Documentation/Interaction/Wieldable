@@ -1,0 +1,44 @@
+# Wieldable
+[Wieldable.cs](../../Assets/ExeudVR/Scripts/Interaction/Wieldable.cs)
+
+## Description
+
+This component allows objects to be wielded by the user, referencing a particular hand pose for items like bowling balls, baseball bats, or pool cues (2-handed).
+
+## Public Variables, Functions, and Attributes
+
+- `WieldState` (ControllerHand): Gets the current wielding state of the object.
+- `CanBeGrabbed` (ControllerHand, Transform): Determines if the object can be grabbed by a hand.
+- `Disengage` (ControllerHand, Transform): Handles the disengagement of the object from a hand.
+- `BeginAttraction` (ControllerHand, Transform, Action<Wieldable, string>): Initiates the attraction of the object to a hand.
+- `AttractObject` (ControllerHand, Transform, Action): Attracts the object to the hand and returns the primary hand pose.
+
+## Serialized Fields
+
+- `controlPoseLeft` (Transform): The pose (position and rotation) of the object when held in the left hand.
+- `controlPoseRight` (Transform): The pose (position and rotation) of the object when held in the right hand.
+- `primaryHandPose` (string): Name of the condition (in the animator) that identifies the hand transition.
+- `secondHandPose` (string): Not yet active. To be added soon.
+
+## Private Variables
+
+- `HandTracePrimary` (Transform): The transform of the primary hand holding the object.
+- `HandTraceSecondary` (Transform): The transform of the secondary hand holding the object.
+- `myLayer` (string): The original layer of the object.
+
+## Events
+
+- `OnSecondHand` (ControllerHand, Transform, Transform): Triggered when a second hand grabs the object.
+- `OffSecondHand` (bool): Triggered when the second hand releases the object.
+
+## Methods
+
+- `OnEnable`: Stores the object's original layer.
+- `SetLayerRecursively` (GameObject, int): Sets the layer of the given object and all its children recursively.
+- `OrientToHand` (Quaternion, float, Action<Wieldable, string>): Coroutine to orient the object to the hand's rotation.
+- `SetLayerAfterDelay` (float, GameObject, int): Coroutine to set the layer of an object after a specified delay.
+- `LerpToGrabPose` (Transform, Transform, float, Action): Coroutine to smoothly move the object to the grab pose.
+
+## How it Works
+
+The Wieldable component manages the interaction between the user's hands and objects that can be wielded. It handles single and two-handed grabs, as well as the transition between these states. The component uses layer management to control collisions and updates the object's position and rotation to match the hand's pose when grabbed. It also provides events for second-hand interactions, allowing for more complex wielding behaviors. The attraction and orientation of the object to the hand are handled through smooth interpolation, creating a natural-looking grabbing motion.

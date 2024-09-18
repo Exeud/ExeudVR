@@ -14,7 +14,7 @@ using System.Runtime.InteropServices;
 namespace ExeudVR
 {
     /// <summary>
-    /// The main entry point for P2P network communication. 
+    /// The main entry point for P2P network communication.
     /// <para /><see href="https://github.com/Exeud/ExeudVR/tree/develop/Documentation/Multiplayer/NetworkIO.md"/>
     /// </summary>
     public class NetworkIO : MonoBehaviour
@@ -45,17 +45,16 @@ namespace ExeudVR
         public delegate void NetworkUserEvent(ConnectionState state, string userId, string payload);
         public event NetworkUserEvent OnNetworkChanged;
 
-        // interface
-        //public float NetworkUpdateFrequency { get; private set; }
-        //public bool IsConnected { get; private set; }
-
-
         // inspector objects
+        [Tooltip("The signaling server URL used for matchmaking")]
         [SerializeField] private string SignalingServerUrl = "https://rtcmulticonnection-sockets.herokuapp.com:443/";
-        
+
+        [Tooltip("A visual indicator of the connection state")]
         [SerializeField] private Renderer connectionIndicator;
 
+        [Tooltip("Component to handle opening and joining rooms")]
         [SerializeField] private RoomManager roomManager;
+
 
         // private variables
         private RtcMultiConnection myConnection;

@@ -1,7 +1,17 @@
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 using UnityEngine;
 
 namespace ExeudVR
 {
+    /// <summary>
+    /// Handles raycast and pointer placement for parent hand.
+    /// <para /><see href="https://github.com/Exeud/ExeudVR/tree/develop/Documentation/Controllers/XRPointer.md"/>
+    /// </summary>
     public class XRPointer : MonoBehaviour
     {
         [SerializeField] private float MaxInteractionDistance = 15.0f;

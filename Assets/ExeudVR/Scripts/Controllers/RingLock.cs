@@ -1,5 +1,8 @@
 using UnityEngine;
 
+/// <summary>
+/// Experimental
+/// </summary>
 public class RingLock : MonoBehaviour
 {
     public delegate void RingLockDelegate(bool locked);
