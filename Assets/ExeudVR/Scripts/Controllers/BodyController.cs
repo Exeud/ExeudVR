@@ -28,7 +28,7 @@ namespace ExeudVR
         public static string CurrentUserId { get; private set; }
         public static int CurrentNoPeers { get; set; }
 
-        public ExeudVRAvatarController avatar { get; set; }
+        public ExeudVRAvatarController Avatar { get; set; }
 
         public float CharacterHeight { 
             get { return transform.localPosition.y; }
@@ -74,15 +74,15 @@ namespace ExeudVR
             MapControllerEvents(state == XRState.VR);
 
             // toggle hand IK
-            if (avatar != null)
+            if (Avatar != null)
             {
                 if (state == XRState.NORMAL)
                 {
-                    avatar.RelaxArmRig();
+                    Avatar.RelaxArmRig();
                 }
                 else
                 {
-                    avatar.PrepareArmRig();
+                    Avatar.PrepareArmRig();
                 }
             }
         }

@@ -1,0 +1,101 @@
+{
+  "Documentation": {
+    "Controllers": {
+      "BodyRig": {
+        "files": [
+          "ExeudVRAvatarController.md",
+          "ExeudVRRig.md"
+        ]
+      },
+      "files": [
+        "BodyController.md",
+        "DesktopController.md",
+        "RigController.md",
+        "XRController.md",
+        "XRPointer.md"
+      ]
+    },
+    "Editor": {
+      "files": [
+        "EditorSettingsManager.md",
+        "GetDocStructure.md",
+        "StreamingAssetHandler.md"
+      ]
+    },
+    "Environment": {
+    },
+    "Interaction": {
+      "files": [
+        "ControlDynamics.md",
+        "ObjectInterface.md",
+        "PressableButton.md",
+        "RigidDynamics.md",
+        "Wieldable.md"
+      ]
+    },
+    "Managers": {
+      "files": [
+        "CursorManager.md",
+        "PlatformManager.md",
+        "Respawn.md",
+        "StartManager.md"
+      ]
+    },
+    "Media": {
+      "files": [
+        "JukeboxController.md",
+        "MediaController.md",
+        "MediaPlayerBehaviour.md",
+        "StreamingAsset.md"
+      ]
+    },
+    "Multiplayer": {
+      "files": [
+        "AvatarController.md",
+        "AvatarHand.md",
+        "AvatarManager.md",
+        "ChatController.md",
+        "NetworkIO.md",
+        "NodeInputData.md",
+        "RoomManager.md",
+        "RtcMultiConnection.md"
+      ]
+    },
+    "ObjectBehaviour": {
+      "WatchFunctions": {
+        "files": [
+          "WatchController.md"
+        ]
+      },
+      "files": [
+        "FollowerBehaviour.md",
+        "LinearDriveBehaviour.md"
+      ]
+    },
+    "SharedAssets": {
+      "files": [
+        "SharedAsset.md",
+        "SharedAssetData.md",
+        "SharedAssetManager.md"
+      ]
+    },
+    "UI": {
+      "files": [
+        "CentreCrosshair.md",
+        "VariableJoystick.md"
+      ]
+    },
+    "Volumetrics": {
+      "files": [
+        "VolumeSolver.md"
+      ]
+    },
+    "WorldComputer": {
+      "files": [
+        "CanisterUtils.md",
+        "ChainAPI.md",
+        "ChainUtils.md",
+        "IIAuth.md",
+        "WalletUI.md"
+      ]
+    }  }}

@@ -1,3 +1,9 @@
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 using Newtonsoft.Json;
 using UnityEngine;
 
@@ -11,6 +17,10 @@ namespace ExeudVR
         public string status;
     }
 
+    /// <summary>
+    /// Handles authentication via the Internet Identity service on the IC. Still not operational in VR browsers.
+    /// <para /><see href="https://github.com/Exeud/ExeudVR/tree/develop/Documentation/WorldComputer/IIAuth.md"/>
+    /// </summary>
     public class IIAuth : MonoBehaviour
     {
         public UserProfile iiUserProfile { get; private set; }

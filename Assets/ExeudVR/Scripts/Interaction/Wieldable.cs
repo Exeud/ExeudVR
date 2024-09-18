@@ -11,8 +11,8 @@ namespace ExeudVR
 {
     /// <summary>
     /// This component allows objects to be wielded by the user, referencing a particular hand pose. 
-    /// e.g. bowling balls, baseball bats or pool cues (2-handed). For more information 
-    /// <see href="https://github.com/Exeud/ExeudVR/tree/develop/Documentation/Interaction/Grabbable.md"/>
+    /// e.g. bowling balls, baseball bats or pool cues (2-handed). 
+    /// <see href="https://github.com/Exeud/ExeudVR/tree/develop/Documentation/Interaction/Wieldable.md"/>
     /// </summary>
     public class Wieldable : MonoBehaviour
     {

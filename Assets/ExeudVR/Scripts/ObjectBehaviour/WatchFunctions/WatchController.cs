@@ -1,55 +1,48 @@
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 using System.Collections;
 using UnityEngine;
 
-public class WatchController : MonoBehaviour
+namespace ExeudVR
 {
-    [SerializeField] private GameObject[] modeCanvases;
-    [SerializeField] private GameObject characterRoot;
-
-    private int currentMode = 0;
-
-    public void OnWake()
+    /// <summary>
+    /// Switches watch swatches
+    /// <para /><see href="https://github.com/Exeud/ExeudVR/tree/develop/Documentation/ObjectBehaviour/WatchFunctions/WatchController.md"/>
+    /// </summary>
+    public class WatchController : MonoBehaviour
     {
-        SetMode(currentMode);
-    }
+        [SerializeField] private GameObject[] modeCanvases;
+        [SerializeField] private GameObject characterRoot;
 
-    public void OnSleep()
-    {
-        SetMode(-1);
-    }
+        private int currentMode = 0;
 
-    public void ChangeMode(float trigVal)
-    {
-        currentMode++;
-        if (currentMode > modeCanvases.Length - 1) currentMode = 0;
-        SetMode(currentMode);
-    }
-
-
-    private void SetMode(int newMode)
-    {
-        for (int g = 0; g < modeCanvases.Length; g++)
+        public void OnWake()
         {
-            modeCanvases[g].SetActive(g == newMode);
-        }
-    }
-
-    private IEnumerator LerpToTarget(GameObject objToLerp, Vector3 endPosition, Quaternion endRotation, float duration)
-    {
-        yield return new WaitForEndOfFrame();
-
-        Transform t = objToLerp.transform;
-        float time = 0;
-        while (time < duration)
-        {
-            objToLerp.transform.position = Vector3.Lerp(t.position, endPosition, time / duration);
-            objToLerp.transform.rotation = Quaternion.Slerp(t.rotation, endRotation, time / duration);
-
-            time += Time.deltaTime;
-            yield return null;
+            SetMode(currentMode);
         }
 
-        objToLerp.transform.position = endPosition;
-        objToLerp.transform.rotation = endRotation;
+        public void OnSleep()
+        {
+            SetMode(-1);
+        }
+
+        public void ChangeMode(float trigVal)
+        {
+            currentMode++;
+            if (currentMode > modeCanvases.Length - 1) currentMode = 0;
+            SetMode(currentMode);
+        }
+
+        private void SetMode(int newMode)
+        {
+            for (int g = 0; g < modeCanvases.Length; g++)
+            {
+                modeCanvases[g].SetActive(g == newMode);
+            }
+        }
     }
 }

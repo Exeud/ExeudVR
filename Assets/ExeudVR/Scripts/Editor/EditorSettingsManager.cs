@@ -1,3 +1,9 @@
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 #if UNITY_EDITOR
 
 using UnityEditor;
@@ -8,6 +14,10 @@ using UnityEngine.XR.Management;
 
 namespace ExeudVR
 {
+    /// <summary>
+    /// Updates settings from the Setup Window. Also hard-codes WebXR settings.
+    /// <para /><see href="https://github.com/Exeud/ExeudVR/tree/develop/Documentation/Editor/EditorSettingsManager.md"/>
+    /// </summary>
     [InitializeOnLoad]
     public class EditorSettingsManager : ScriptableObject
     {

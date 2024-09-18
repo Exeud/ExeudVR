@@ -1,8 +1,19 @@
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
+
 using UnityEngine;
 using UnityEngine.Animations.Rigging;
 
 namespace ExeudVR
 {
+    /// <summary>
+    /// Adjusts hand IK and visibility. Also tracks whether or not the rig is moving and sets animation variables accordingly.
+    /// <para /><see href="https://github.com/Exeud/ExeudVR/tree/develop/Documentation/Controllers/BodyRig/ExeudVRAvatarController.md"/>
+    /// </summary>
     public class ExeudVRAvatarController : MonoBehaviour
     {
         public float speedThreshold = 0.1f;

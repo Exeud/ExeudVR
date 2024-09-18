@@ -1,4 +1,11 @@
-﻿using UnityEngine;
+﻿/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
+
+using UnityEngine;
 
 namespace ExeudVR
 {
@@ -16,6 +23,10 @@ namespace ExeudVR
         }
     }
 
+    /// <summary>
+    /// Maps the body rig onto the ExeudVRCameraSet, using the BodyController as information conduit.
+    /// <para /><see href="https://github.com/Exeud/ExeudVR/tree/develop/Documentation/Controllers/BodyRig/ExeudVRRig.md"/>
+    /// </summary>
     public class ExeudVRRig : MonoBehaviour
     {
         [Tooltip("Connection to ExeudVR \nLocation: ExeudVRCameraSet ➥ CharacterRoot ➥ Body")]
@@ -35,7 +46,7 @@ namespace ExeudVR
 
         private void Start()
         {
-            bodyController.avatar = GetComponent<ExeudVRAvatarController>();
+            bodyController.Avatar = GetComponent<ExeudVRAvatarController>();
 
             headRef = bodyController.GetBodyReference("head");
             bodyRef = bodyController.GetBodyReference("body");

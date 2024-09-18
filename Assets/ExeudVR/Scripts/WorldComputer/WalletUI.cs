@@ -1,3 +1,9 @@
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 using Newtonsoft.Json;
 using System.Collections;
 using System.Text;
@@ -6,6 +12,10 @@ using UnityEngine.UI;
 
 namespace ExeudVR
 {
+    /// <summary>
+    /// Handles coin request and response from single-token EXT canister.
+    /// <para /><see href="https://github.com/Exeud/ExeudVR/tree/develop/Documentation/WorldComputer/WalletUI.md"/>
+    /// </summary>
     public class WalletUI : MonoBehaviour
     {
         [SerializeField] private Transform spawnLocation;
@@ -33,7 +43,7 @@ namespace ExeudVR
             // for testing
             if (Application.platform == RuntimePlatform.WindowsEditor)
             {
-                string iName = "pr2du-4rav3-30gvv-ielbu-n135t-k3pw7-72fgw-mpqiq-3oa2b-exqzn-sae";
+                string iName = "test-principal";
                 string bookd = iName.BookEnd(7, "...");
                 UpdateScreenMessage("Requesting test with: " + bookd, onGetCoin);
                 return;

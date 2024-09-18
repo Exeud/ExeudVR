@@ -1,7 +1,18 @@
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 using Newtonsoft.Json;
 using UnityEngine;
 
 namespace ExeudVR {
+
+    /// <summary>
+    // Canister response interrogation example.
+    /// <para /><see href="https://github.com/Exeud/ExeudVR/tree/develop/Documentation/WorldComputer/ChainUtils.md"/>
+    /// </summary>
     public class ChainUtils : MonoBehaviour
     {
         public static void InterrogateCanisterResponse(string jsonData)

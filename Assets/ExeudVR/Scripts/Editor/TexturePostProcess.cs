@@ -8,6 +8,9 @@ using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
 using UnityEditor.Rendering;
 
+/// <summary>
+/// Removes unnecessary textures from WebGL build, saving 2-3 MB
+/// </summary>
 public class TexturePostProcess : IPreprocessBuildWithReport, IPreprocessShaders
 {
     public int callbackOrder { get { return 0; } }

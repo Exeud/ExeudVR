@@ -1,49 +1,57 @@
-﻿using UnityEngine;
+﻿/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
+using UnityEngine;
 using UnityEngine.Video;
 
-/// <summary>
-/// A simple script that demonstrates how to connect the DoubleClick function, which 
-/// is usable by any interactable, to play and pause either audio or video streams.
-/// Place this script as a component alongside whichever collider you wish to interact with.
-/// </summary>
-public class MediaPlayerBehaviour : MonoBehaviour
+namespace ExeudVR
 {
-    public void OnDoubleClick()
+    /// <summary>
+    /// A simple script that demonstrates how to connect the DoubleClick function to play and pause either audio or video streams.
+    /// <para /><see href="https://github.com/Exeud/ExeudVR/tree/develop/Documentation/Media/MediaPlayerBehaviour.md"/>
+    /// </summary>
+    public class MediaPlayerBehaviour : MonoBehaviour
     {
-        if (GetComponent<AudioSource>()) ToggleAudio();
-        if (GetComponent<VideoPlayer>()) ToggleVideo();
-    }
-
-    public void ToggleAudio()
-    {
-        if (!gameObject.GetComponent<AudioSource>().isPlaying)
+        public void OnDoubleClick()
         {
-            gameObject.GetComponent<AudioSource>().Play();
+            if (GetComponent<AudioSource>()) ToggleAudio();
+            if (GetComponent<VideoPlayer>()) ToggleVideo();
         }
-        else 
-        {
-            gameObject.GetComponent<AudioSource>().Pause();
-        }
-    }
 
-    public void ToggleVideo()
-    {
-        VideoPlayer vp = gameObject.GetComponent<VideoPlayer>();
-
-        if (vp != null && vp.isPrepared)
+        public void ToggleAudio()
         {
-            if (vp.isPlaying)
+            if (!gameObject.GetComponent<AudioSource>().isPlaying)
             {
-                vp.Pause();
+                gameObject.GetComponent<AudioSource>().Play();
             }
             else
             {
-                vp.Play();
+                gameObject.GetComponent<AudioSource>().Pause();
             }
         }
-        else
+
+        public void ToggleVideo()
         {
-            // do nothing, the video is not ready yet
+            VideoPlayer vp = gameObject.GetComponent<VideoPlayer>();
+
+            if (vp != null && vp.isPrepared)
+            {
+                if (vp.isPlaying)
+                {
+                    vp.Pause();
+                }
+                else
+                {
+                    vp.Play();
+                }
+            }
+            else
+            {
+                // do nothing, the video is not ready yet
+            }
         }
     }
 }

@@ -1,7 +1,18 @@
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
+
 using UnityEngine;
 
 namespace ExeudVR
 {
+    /// <summary>
+    /// Handled cursors in 2D. Changes appearance based on layer. Passes double-clicks to ObjectInterface.
+    /// <para /><see href="https://github.com/Exeud/ExeudVR/tree/develop/Documentation/Managers/CursorManager.md"/>
+    /// </summary>
     public class CursorManager : MonoBehaviour
     {
         // Singleton

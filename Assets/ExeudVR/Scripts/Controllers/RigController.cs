@@ -1,4 +1,10 @@
-﻿using UnityEngine;
+﻿/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
+using UnityEngine;
 
 namespace ExeudVR
 {
@@ -6,6 +12,7 @@ namespace ExeudVR
     /// The RigController acts as an adjustable pivot between the head and hands.
     /// It is useful for body-oriented events and functions, and connects the HUD.
     /// It also handles placement of the foot plate, keeping you grounded.
+    /// <para /><see href="https://github.com/Exeud/ExeudVR/tree/develop/Documentation/Controllers/RigController.md"/>
     /// </summary>
     public class RigController : MonoBehaviour
     {

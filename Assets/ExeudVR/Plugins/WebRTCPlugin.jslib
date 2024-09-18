@@ -264,7 +264,7 @@ mergeInto(LibraryManager.library, {
 							SendMessage(roomManagerNode, "RoomIsFull", JSON.stringify(roomid));
 							return;
 						}
-						SendMessage(roomManagerNode, "RoomCreated", roomid);
+						SendMessage(roomManagerNode, "RoomCreated", JSON.stringify(roomid));
 					});
 				}
 			});
@@ -291,7 +291,7 @@ mergeInto(LibraryManager.library, {
 					});
 				}
 				else{
-					SendMessage(roomManagerNode, "RoomNotFound", JSON.stringify(roomId));
+					SendMessage(roomManagerNode, "RoomNotFound", JSON.stringify(roomid));
 				}
 			});
 		}

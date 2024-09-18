@@ -23,7 +23,7 @@ namespace ExeudVR
 
     /// <summary>
     /// This class looks after mode detection and switching, interfacing with the WebXRManager. 
-    /// <see href="https://github.com/Exeud/ExeudVR/tree/develop/Documentation/Managers/PlatformManager.md"/>
+    /// <para /><see href="https://github.com/Exeud/ExeudVR/tree/develop/Documentation/Managers/PlatformManager.md"/>
     /// </summary>
     public class PlatformManager : MonoBehaviour
     {

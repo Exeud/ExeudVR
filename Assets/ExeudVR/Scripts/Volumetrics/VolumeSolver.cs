@@ -9,6 +9,10 @@ using UnityEngine;
 
 namespace ExeudVR
 {
+    /// <summary>
+    /// Volume estimation from mesh data.
+    /// <para /><see href="https://github.com/Exeud/ExeudVR/tree/develop/Documentation/Volumetrics/VolumeSolver.md"/>
+    /// </summary>
     public class VolumeSolver
     {
         private Vector3 ObjScale { get; set; }

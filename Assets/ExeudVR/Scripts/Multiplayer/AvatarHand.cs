@@ -10,7 +10,7 @@ using UnityEngine;
 namespace ExeudVR
 {
     /// <summary>
-    /// Handles interaction events for the avatar's virtual hand. For more information see 
+    /// Handles interaction events for the avatar's virtual hand.
     /// <para /><see href="https://github.com/Exeud/ExeudVR/tree/develop/Documentation/Multiplayer/AvatarHand.md"/>
     /// </summary>
     public class AvatarHand : MonoBehaviour

@@ -13,13 +13,12 @@ using UnityEngine;
 namespace ExeudVR 
 {
     /// <summary>
-    /// This class is responsible for managing rooms in a multiplayer game. It handles room creation, joining, and updating room information.
+    /// This class is responsible for managing rooms in a multiplayer space. It handles room creation, joining, and updating room information.
     /// <para /><see href="https://github.com/Exeud/ExeudVR/tree/develop/Documentation/Multiplayer/RoomManager.md"/>
     /// </summary>
     public class RoomManager : MonoBehaviour
     {
         private List<RoomObject> rooms;
-        private string currentRoom;
 
         // text assets for name generation
         private TextAsset fourLW;
@@ -86,7 +85,6 @@ namespace ExeudVR
 
         public void LeaveRoom()
         {
-            currentRoom = string.Empty;
             roomString = string.Empty;
             randomSeed = new System.Random();
         }
@@ -147,7 +145,7 @@ namespace ExeudVR
                 if ((int)rooms[r].Participants.Length < (int)rooms[r].MaxParticipantsAllowed)
                 {
                     availableRoom = rooms[r].SessionId;
-                    Debug.Log("Available room found: " + availableRoom);
+                    Debug.Log("Available room: " + availableRoom);
                 }
             }
             return availableRoom;
@@ -166,40 +164,37 @@ namespace ExeudVR
             Debug.Log("Room check failed: " + errorMessage);
         }
 
-        private void RoomCreated(string message)
+        private void RoomCreated(string roomId)
         {
-            currentRoom = message;
-            roomString = currentRoom;
-
+            roomString = JsonConvert.DeserializeObject<string>(roomId);
             Debug.Log("You made a room of " + roomString);
             NetworkIO.Instance.MakeReady();
         }
 
-        private void RoomJoined(string message)
+        private void RoomJoined(string roomId)
         {
-            currentRoom = message;
-            roomString = currentRoom;
-
+            roomString = JsonConvert.DeserializeObject<string>(roomId);
             Debug.Log("You joined a room of " + roomString);
             NetworkIO.Instance.MakeReady();
         }
 
         private void RoomIsFull(string roomId)
         {
-            Debug.Log("Room is full");
+            string fullRoom = JsonConvert.DeserializeObject<string>(roomId);
+            Debug.Log("Room is full: " + fullRoom);
         }
 
         private void RoomNotFound(string roomId)
         {
-            Debug.Log("Room could not be found: " + roomId);
+            string missingRoom = JsonConvert.DeserializeObject<string>(roomId);
             
             // check for an remove bad room
             for (int r = 0; r < rooms.Count; r++)
             {
-                if (rooms[r].SessionId == roomId)
+                if (rooms[r].SessionId == missingRoom)
                 {
                     rooms.RemoveAt(r);
-                    Debug.Log("Scrubbed room: " + roomId);
+                    Debug.Log("Removed missing room: " + missingRoom);
                 }
             }
 
