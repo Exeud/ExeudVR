@@ -43,4 +43,4 @@ The XRPointer script is responsible for handling the pointer functionality in th
 
 6. Experimental Features: There's a commented-out section for a 'RingLock' feature, which could potentially provide a wider selection area at greater distances.
 
-This script plays a crucial role in the ExeudVR interaction system by providing precise pointing capabilities, essential for object selection and interaction in the VR environment. Its integration with the XRController allows for seamless hand-based interaction in the virtual space.
+This script provides pointing capabilities, essential for object selection and interaction in the VR environment.

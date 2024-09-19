@@ -45,5 +45,3 @@ The ExeudVRAvatarController manages the avatar's arm IK and movement animations:
 4. Adaptive Animation: The controller ensures that animations adapt to the user's movement, providing a more immersive experience.
 
 5. Performance Optimization: By using FixedUpdate for calculations, it maintains consistent performance regardless of frame rate.
-
-This controller plays a crucial role in making the avatar's movements and animations responsive to the user's actions in the VR environment, enhancing the overall immersion and visual feedback of the ExeudVR system.

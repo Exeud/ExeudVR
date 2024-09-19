@@ -54,4 +54,4 @@ In game mode, it manages a crosshair instead of a cursor, adjusting its appearan
 
 The component interfaces with the ObjectInterface system, managing focus on interactive objects and triggering actions like double-clicks. It also provides events that other components can subscribe to for cursor-related actions.
 
-The CursorManager adapts to different XR states, ensuring appropriate cursor behavior across various VR and non-VR scenarios. This makes it a central component in managing user interaction across different game states and interaction modes.
+The CursorManager adapts to different XR states, ensuring appropriate cursor behavior across various VR and non-VR scenarios.

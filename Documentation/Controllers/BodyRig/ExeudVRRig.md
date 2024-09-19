@@ -55,4 +55,6 @@ The ExeudVRRig script is responsible for mapping the VR input to the avatar's ri
 
 4. Integration with BodyController: It uses the BodyController to get references to the VR input transforms, ensuring proper coordination with the rest of the ExeudVR system.
 
-This script plays a crucial role in translating the user's VR movements to the in-game avatar, providing a seamless connection between the player's actions and the virtual representation. The use of separate VRMap instances for each body part allows for independent and precise control over different parts of the avatar.
+This script translates the user's VR movements to the in-game avatar, providing a seamless connection between the player's actions and the virtual representation. 
+
+When adding this to the scene, either as a script or part of a prefab, make sure you connect the `BodyController` component or there will be an error when starting the scene.

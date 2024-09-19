@@ -30,7 +30,7 @@ Handles the crosshair appearance for 'Game Mode', allowing dynamic customization
 
 ## Events
 
-None explicitly defined in the provided code.
+None
 
 ## Methods
 

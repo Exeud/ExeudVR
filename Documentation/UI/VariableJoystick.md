@@ -19,11 +19,11 @@ A customizable joystick component that extends JoystickBase to provide different
 
 ## Private Variables
 
-None explicitly defined in the provided code.
+None
 
 ## Events
 
-None explicitly defined in the provided code.
+None
 
 ## Methods
 
